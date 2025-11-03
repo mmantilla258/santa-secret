@@ -49,5 +49,35 @@
 
     <div class="footer">Organizador: correo@ejemplo.com — Sorteo automático al llegar a 11 registros</div>
   </div>
+  <!-- BOTÓN SECRETO (solo visible con combinación especial) -->
+<button id="resetBtn" style="display:none; margin-top:20px; background-color:#dc3545;">
+  Reiniciar Sistema
+</button>
+
+<script>
+  // Mostrar botón al escribir código secreto (por ejemplo: "famamv")
+  let inputCode = "";
+  document.addEventListener("keydown", (e) => {
+    inputCode += e.key.toLowerCase();
+    if (inputCode.includes("famamv")) {
+      document.getElementById("resetBtn").style.display = "block";
+      alert("Modo administrador activado 🔐");
+      inputCode = "";
+    }
+    if (inputCode.length > 10) inputCode = ""; // evitar que crezca indefinidamente
+  });
+
+  // Función del botón (reinicia datos locales)
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("¿Seguro que quieres reiniciar el sistema?")) {
+      localStorage.clear();
+      sessionStorage.clear();
+      alert("Sistema reiniciado correctamente 🔁");
+      location.reload();
+    }
+  });
+</script>
+
 </body>
 </html>
+
