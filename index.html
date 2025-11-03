@@ -122,13 +122,6 @@
     #adminDiv {
       margin-top: 20px;
     }
-
-    .tip {
-      font-size: 0.9em;
-      color: #eee;
-      margin-top: 10px;
-      opacity: 0.9;
-    }
   </style>
 </head>
 <body>
@@ -150,162 +143,157 @@
       <button type="submit" id="sendBtn">Enviar</button>
     </form>
 
-    <p class="tip" id="tipText">✨ Tip: Escribe "famamv" en el nombre para activar el modo administrador ✨</p>
-
     <p id="status"></p>
     <div id="participantes"></div>
     <div id="adminDiv"></div>
   </div>
 
-  <!-- Script de Firebase + traducciones -->
+  <!-- Script -->
   <script type="module">
-    window.addEventListener('DOMContentLoaded', () => {
-      import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js').then(({ initializeApp }) => {
-        import('https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js').then(({ getDatabase, ref, push, set, onValue, remove }) => {
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-          // --- Configuración Firebase ---
-          const firebaseConfig = {
-            apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
-            authDomain: "santa-secreto-d2f26.firebaseapp.com",
-            projectId: "santa-secreto-d2f26",
-            storageBucket: "santa-secreto-d2f26.firebasestorage.app",
-            messagingSenderId: "447417641195",
-            appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
-            databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com"
-          };
+    // --- Configuración Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
+      authDomain: "santa-secreto-d2f26.firebaseapp.com",
+      projectId: "santa-secreto-d2f26",
+      storageBucket: "santa-secreto-d2f26.firebasestorage.app",
+      messagingSenderId: "447417641195",
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com"
+    };
 
-          const app = initializeApp(firebaseConfig);
-          const db = getDatabase(app);
-          const participantesRef = ref(db, "participantes");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const participantesRef = ref(db, "participantes");
 
-          const form = document.getElementById("form");
-          const participantesDiv = document.getElementById("participantes");
-          const statusText = document.getElementById("status");
-          const adminDiv = document.getElementById("adminDiv");
+    // Referencias DOM
+    const form = document.getElementById("form");
+    const participantesDiv = document.getElementById("participantes");
+    const statusText = document.getElementById("status");
+    const adminDiv = document.getElementById("adminDiv");
 
-          // --- Traducciones ---
-          const traducciones = {
-            es: {
-              title: "🎅 Santa Secreto 2025 🎁",
-              subtitle: "Ingresa tu nombre, correo y lo que te gustaría recibir de regalo",
-              placeholderNombre: "Tu nombre",
-              placeholderCorreo: "Tu correo",
-              placeholderRegalo: "Descripción del regalo",
-              enviar: "Enviar",
-              participantes: "🎄 <b>Participantes:</b><br>{count} personas registradas",
-              registroOk: "✅ Registro exitoso!",
-              admin: "🛠️ Modo administrador activo",
-              confirmReset: "⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.",
-              resetOk: "✅ Sistema reiniciado con éxito.",
-              tip: "✨ Tip: Escribe 'famamv' en el nombre para activar el modo administrador ✨"
-            },
-            en: {
-              title: "🎅 Secret Santa 2025 🎁",
-              subtitle: "Enter your name, email, and what you would like to receive as a gift",
-              placeholderNombre: "Your name",
-              placeholderCorreo: "Your email",
-              placeholderRegalo: "Gift description",
-              enviar: "Submit",
-              participantes: "🎄 <b>Participants:</b><br>{count} registered people",
-              registroOk: "✅ Successfully registered!",
-              admin: "🛠️ Admin mode active",
-              confirmReset: "⚠️ Are you sure you want to reset the entire system? This action cannot be undone.",
-              resetOk: "✅ System successfully reset.",
-              tip: "✨ Tip: Type 'famamv' in the name to activate admin mode ✨"
-            },
-            nl: {
-              title: "🎅 Geheim Kerstman 2025 🎁",
-              subtitle: "Voer je naam, e-mail en het cadeau dat je graag wilt ontvangen in",
-              placeholderNombre: "Je naam",
-              placeholderCorreo: "Je e-mail",
-              placeholderRegalo: "Beschrijving van het cadeau",
-              enviar: "Verzenden",
-              participantes: "🎄 <b>Deelnemers:</b><br>{count} geregistreerde personen",
-              registroOk: "✅ Succesvol geregistreerd!",
-              admin: "🛠️ Beheermodus actief",
-              confirmReset: "⚠️ Weet je zeker dat je het hele systeem wilt resetten? Deze actie kan niet ongedaan worden gemaakt.",
-              resetOk: "✅ Systeem succesvol gereset.",
-              tip: "✨ Tip: Typ 'famamv' in de naam om de beheermodus te activeren ✨"
-            }
-          };
+    // --- Traducciones ---
+    const traducciones = {
+      es: {
+        title: "🎅 Santa Secreto 2025 🎁",
+        subtitle: "Ingresa tu nombre, correo y lo que te gustaría recibir de regalo",
+        placeholderNombre: "Tu nombre",
+        placeholderCorreo: "Tu correo",
+        placeholderRegalo: "Descripción del regalo",
+        enviar: "Enviar",
+        participantes: "🎄 <b>Participantes:</b><br>{count} personas registradas",
+        registroOk: "✅ Registro exitoso!",
+        admin: "🛠️ Modo administrador activo",
+        confirmReset: "⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.",
+        resetOk: "✅ Sistema reiniciado con éxito."
+      },
+      en: {
+        title: "🎅 Secret Santa 2025 🎁",
+        subtitle: "Enter your name, email, and what you would like to receive as a gift",
+        placeholderNombre: "Your name",
+        placeholderCorreo: "Your email",
+        placeholderRegalo: "Gift description",
+        enviar: "Submit",
+        participantes: "🎄 <b>Participants:</b><br>{count} registered people",
+        registroOk: "✅ Successfully registered!",
+        admin: "🛠️ Admin mode active",
+        confirmReset: "⚠️ Are you sure you want to reset everything? This cannot be undone.",
+        resetOk: "✅ System successfully reset."
+      },
+      nl: {
+        title: "🎅 Geheim Kerstman 2025 🎁",
+        subtitle: "Voer je naam, e-mail en het cadeau dat je graag wilt ontvangen in",
+        placeholderNombre: "Je naam",
+        placeholderCorreo: "Je e-mail",
+        placeholderRegalo: "Beschrijving van het cadeau",
+        enviar: "Verzenden",
+        participantes: "🎄 <b>Deelnemers:</b><br>{count} geregistreerde personen",
+        registroOk: "✅ Succesvol geregistreerd!",
+        admin: "🛠️ Beheermodus actief",
+        confirmReset: "⚠️ Weet je zeker dat je het hele systeem wilt resetten? Deze actie kan niet ongedaan worden gemaakt.",
+        resetOk: "✅ Systeem succesvol gereset."
+      }
+    };
 
-          let idioma = "es";
-          let dataCache = null;
+    let idioma = "es";
+    let dataCache = null;
 
-          function cambiarIdioma(lang) {
-            idioma = lang;
-            const t = traducciones[lang];
-            document.getElementById("title").innerHTML = t.title;
-            document.getElementById("subtitle").innerHTML = t.subtitle;
-            document.getElementById("nombre").placeholder = t.placeholderNombre;
-            document.getElementById("correo").placeholder = t.placeholderCorreo;
-            document.getElementById("regalo").placeholder = t.placeholderRegalo;
-            document.getElementById("sendBtn").innerText = t.enviar;
-            document.getElementById("tipText").innerText = t.tip;
-            actualizarConteoParticipantes();
-          }
+    // --- Función de idioma ---
+    function cambiarIdioma(lang) {
+      idioma = lang;
+      const t = traducciones[lang];
+      document.getElementById("title").innerHTML = t.title;
+      document.getElementById("subtitle").innerHTML = t.subtitle;
+      document.getElementById("nombre").placeholder = t.placeholderNombre;
+      document.getElementById("correo").placeholder = t.placeholderCorreo;
+      document.getElementById("regalo").placeholder = t.placeholderRegalo;
+      document.getElementById("sendBtn").innerText = t.enviar;
+      actualizarConteoParticipantes();
+    }
 
-          function actualizarConteoParticipantes() {
-            const data = dataCache;
-            const count = data ? Object.keys(data).length : 0;
-            const texto = traducciones[idioma].participantes.replace("{count}", count);
-            participantesDiv.innerHTML = texto;
-          }
+    // --- Botones de idioma ---
+    document.getElementById("btn-es").onclick = () => cambiarIdioma("es");
+    document.getElementById("btn-en").onclick = () => cambiarIdioma("en");
+    document.getElementById("btn-nl").onclick = () => cambiarIdioma("nl");
 
-          onValue(participantesRef, (snapshot) => {
-            dataCache = snapshot.val();
-            actualizarConteoParticipantes();
-          });
+    // --- Actualizar conteo ---
+    function actualizarConteoParticipantes() {
+      const data = dataCache;
+      const count = data ? Object.keys(data).length : 0;
+      const texto = traducciones[idioma].participantes.replace("{count}", count);
+      participantesDiv.innerHTML = texto;
+    }
 
-          form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const nombre = form.nombre.value.trim();
-            const correo = form.correo.value.trim();
-            const regalo = form.regalo.value.trim();
-
-            push(participantesRef, { nombre, correo, regalo }).then(() => {
-              form.reset();
-              statusText.innerHTML = traducciones[idioma].registroOk;
-              setTimeout(() => statusText.innerHTML = "", 3000);
-            });
-
-            if (nombre.toLowerCase() === "famamv") mostrarBotonReinicio();
-          });
-
-          const inputNombre = document.getElementById("nombre");
-          inputNombre.addEventListener("input", () => {
-            if (inputNombre.value.toLowerCase() === "famamv") mostrarBotonReinicio();
-            else adminDiv.innerHTML = "";
-          });
-
-          function mostrarBotonReinicio() {
-            adminDiv.innerHTML = `
-              <div style="text-align:center; margin-top:15px;">
-                <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
-                  🔁 Reiniciar sistema
-                </button>
-                <p style="color:lime;font-weight:bold;">${traducciones[idioma].admin}</p>
-              </div>
-            `;
-            document.getElementById("resetBtn").addEventListener("click", () => {
-              if (confirm(traducciones[idioma].confirmReset)) {
-                remove(participantesRef).then(() => {
-                  statusText.innerHTML = traducciones[idioma].resetOk;
-                  setTimeout(() => statusText.innerHTML = "", 5000);
-                });
-              }
-            });
-          }
-
-          // --- Botones de idioma (activados correctamente) ---
-          document.getElementById("btn-es").addEventListener("click", () => cambiarIdioma("es"));
-          document.getElementById("btn-en").addEventListener("click", () => cambiarIdioma("en"));
-          document.getElementById("btn-nl").addEventListener("click", () => cambiarIdioma("nl"));
-
-          cambiarIdioma("es");
-        });
-      });
+    // --- Escucha base de datos ---
+    onValue(participantesRef, (snapshot) => {
+      dataCache = snapshot.val();
+      actualizarConteoParticipantes();
     });
+
+    // --- Envío formulario ---
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nombre = form.nombre.value.trim();
+      const correo = form.correo.value.trim();
+      const regalo = form.regalo.value.trim();
+
+      push(participantesRef, { nombre, correo, regalo }).then(() => {
+        form.reset();
+        statusText.innerHTML = traducciones[idioma].registroOk;
+        setTimeout(() => statusText.innerHTML = "", 3000);
+      });
+
+      if (nombre.toLowerCase() === "famamv") mostrarBotonReinicio();
+    });
+
+    const inputNombre = document.getElementById("nombre");
+    inputNombre.addEventListener("input", () => {
+      if (inputNombre.value.toLowerCase() === "famamv") mostrarBotonReinicio();
+      else adminDiv.innerHTML = "";
+    });
+
+    function mostrarBotonReinicio() {
+      adminDiv.innerHTML = `
+        <div style="text-align:center; margin-top:15px;">
+          <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
+            🔁 Reiniciar sistema
+          </button>
+          <p style="color:lime;font-weight:bold;">${traducciones[idioma].admin}</p>
+        </div>
+      `;
+      document.getElementById("resetBtn").onclick = () => {
+        if (confirm(traducciones[idioma].confirmReset)) {
+          remove(participantesRef).then(() => {
+            statusText.innerHTML = traducciones[idioma].resetOk;
+            setTimeout(() => statusText.innerHTML = "", 5000);
+          });
+        }
+      };
+    }
+
+    cambiarIdioma("es");
   </script>
 </body>
 </html>
