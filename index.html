@@ -1,85 +1,139 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Santa Secreto — Familia Arango-Mantilla-Verkeyn</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Santa Secreto 🎅</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f7f7f7;color:#222;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-    .card{width:100%;max-width:760px;background:#fff;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.08);overflow:hidden;}
-    header{height:260px;overflow:hidden;}
-    header img{width:100%;height:100%;object-fit:cover;display:block;}
-    .content{padding:20px 28px 28px;}
-    h1{margin:0 0 8px;font-size:20px;}
-    p.lead{margin:0 0 16px;color:#555;}
-    label{display:block;margin-top:10px;font-weight:600;}
-    input[type="text"],input[type="email"],textarea{width:100%;padding:10px;margin-top:6px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;}
-    textarea{min-height:120px;resize:vertical;}
-    button{margin-top:14px;padding:12px 16px;background:#2c8cff;color:#fff;border:0;border-radius:8px;cursor:pointer;font-weight:700;font-size:15px;}
-    .note{margin-top:12px;color:#666;font-size:13px;}
-    .footer{padding:12px 20px;background:#fafafa;text-align:center;font-size:13px;color:#666;}
-    @media(max-width:520px){header{height:180px}}
+    body {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: url('family.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+
+    form {
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 15px;
+      padding: 20px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    input, textarea {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ff5050;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #lista {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 15px;
+      display: inline-block;
+    }
   </style>
 </head>
+
 <body>
-  <div class="card" role="main">
-    <header>
-      <img src="family.jpeg" alt="Familia" style="width:100%; height:auto; border-radius:10px; object-fit:contain;">
-    </header>
+  <h1>🎅 Santa Secreto 2025 🎁</h1>
+  <p>Ingresa tu nombre, correo y lo que te gustaría recibir de regalo:</p>
 
-    <div class="content">
-      <h1>Santa Secreto — Familia Arango-Mantilla-Verkeyn</h1>
-      <p class="lead">Ingresa nombre, correo y describe el regalo. Sorteo automático cuando haya 11 participantes.</p>
+  <form id="regaloForm">
+    <input type="text" id="nombre" placeholder="Tu nombre" required />
+    <input type="email" id="correo" placeholder="Tu correo" required />
+    <textarea id="deseo" placeholder="Descripción del regalo" required></textarea>
+    <button type="submit">Enviar</button>
+  </form>
 
-      <form id="santaForm" method="post" action="TU_WEB_APP_URL_AQUI">
-        <label for="name">Nombre</label>
-        <input id="name" name="nombre" type="text" required maxlength="200" placeholder="Tu nombre completo">
-
-        <label for="email">Correo electrónico</label>
-        <input id="email" name="correo" type="email" required maxlength="200" placeholder="tu@correo.com">
-
-        <label for="gift">Descripción del regalo (sin límite)</label>
-        <textarea id="gift" name="deseo" placeholder="Describe lo que te gustaría recibir..."></textarea>
-
-        <button type="submit">Enviar inscripción</button>
-
-        <div class="note"><strong>Importante:</strong> 1 inscripción por correo. Al llegar a 11, se realiza el sorteo y recibirás el correo con tu asignación.</div>
-      </form>
-    </div>
-
-    <div class="footer">Organizador: santasecretofamamv@gmail.com — Sorteo automático al llegar a 11 registros</div>
+  <div id="lista">
+    <h2>🎄 Participantes:</h2>
+    <p id="contador">0 personas registradas</p>
+    <ul id="nombres"></ul>
   </div>
-  <!-- BOTÓN SECRETO (solo visible con combinación especial) -->
-<button id="resetBtn" style="display:none; margin-top:20px; background-color:#dc3545;">
-  Reiniciar Sistema
-</button>
 
-<script>
-  // Mostrar botón al escribir código secreto (por ejemplo: "famamv")
-  let inputCode = "";
-  document.addEventListener("keydown", (e) => {
-    inputCode += e.key.toLowerCase();
-    if (inputCode.includes("famamv")) {
-      document.getElementById("resetBtn").style.display = "block";
-      alert("Modo administrador activado 🔐");
-      inputCode = "";
-    }
-    if (inputCode.length > 10) inputCode = ""; // evitar que crezca indefinidamente
-  });
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-  // Función del botón (reinicia datos locales)
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    if (confirm("¿Seguro que quieres reiniciar el sistema?")) {
-      localStorage.clear();
-      sessionStorage.clear();
-      alert("Sistema reiniciado correctamente 🔁");
-      location.reload();
-    }
-  });
-</script>
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
+      authDomain: "santa-secreto-d2f26.firebaseapp.com",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com",
+      projectId: "santa-secreto-d2f26",
+      storageBucket: "santa-secreto-d2f26.firebasestorage.app",
+      messagingSenderId: "447417641195",
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae"
+    };
 
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Referencia en la base de datos
+    const participantesRef = db.ref("participantes");
+
+    // Enviar formulario
+    document.getElementById("regaloForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById("nombre").value;
+      const correo = document.getElementById("correo").value;
+      const deseo = document.getElementById("deseo").value;
+
+      // Guardar en Firebase
+      participantesRef.push({
+        nombre: nombre,
+        correo: correo,
+        deseo: deseo
+      });
+
+      // Limpiar formulario
+      document.getElementById("regaloForm").reset();
+    });
+
+    // Mostrar lista en tiempo real
+    participantesRef.on("value", function(snapshot) {
+      const lista = document.getElementById("nombres");
+      const contador = document.getElementById("contador");
+      lista.innerHTML = "";
+      const data = snapshot.val();
+
+      if (data) {
+        const nombres = Object.values(data).map(item => item.nombre);
+        nombres.forEach(nombre => {
+          const li = document.createElement("li");
+          li.textContent = nombre;
+          lista.appendChild(li);
+        });
+        contador.textContent = `${nombres.length} personas registradas`;
+      } else {
+        contador.textContent = "0 personas registradas";
+      }
+    });
+  </script>
 </body>
 </html>
+
+
 
 
 
