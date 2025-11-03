@@ -28,30 +28,34 @@
       align-items: center;
       padding: 20px;
       position: relative;
+      z-index: 1;
     }
 
     /* --- Botones de idioma --- */
     .lang-buttons {
       position: absolute;
-      top: 15px;
-      right: 15px;
+      top: 20px;
+      right: 20px;
       display: flex;
       gap: 10px;
+      z-index: 100;
     }
 
     .lang-buttons button {
-      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.25);
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      padding: 5px 10px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border: none;
+      transition: all 0.3s ease;
       cursor: pointer;
-      font-size: 0.9em;
-      transition: background 0.3s;
+      backdrop-filter: blur(4px);
     }
 
     .lang-buttons button:hover {
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.45);
+      transform: scale(1.1);
     }
 
     h1 {
@@ -148,7 +152,7 @@
     <div id="adminDiv"></div>
   </div>
 
-  <!-- Script de Firebase -->
+  <!-- Script principal -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -219,88 +223,4 @@
 
     let idioma = "es";
 
-    // --- Función para aplicar idioma ---
-    function cambiarIdioma(lang) {
-      idioma = lang;
-      const t = traducciones[lang];
-      document.getElementById("title").innerHTML = t.title;
-      document.getElementById("subtitle").innerHTML = t.subtitle;
-      document.getElementById("nombre").placeholder = t.placeholderNombre;
-      document.getElementById("correo").placeholder = t.placeholderCorreo;
-      document.getElementById("regalo").placeholder = t.placeholderRegalo;
-      document.getElementById("sendBtn").innerText = t.enviar;
-      actualizarConteoParticipantes();
-    }
-
-    // --- Botones de idioma ---
-    document.getElementById("btn-es").addEventListener("click", () => cambiarIdioma("es"));
-    document.getElementById("btn-en").addEventListener("click", () => cambiarIdioma("en"));
-    document.getElementById("btn-nl").addEventListener("click", () => cambiarIdioma("nl"));
-
-    // --- Mostrar cantidad de participantes ---
-    let dataCache = null;
-    function actualizarConteoParticipantes() {
-      const data = dataCache;
-      const count = data ? Object.keys(data).length : 0;
-      const texto = traducciones[idioma].participantes.replace("{count}", count);
-      participantesDiv.innerHTML = texto;
-    }
-
-    onValue(participantesRef, (snapshot) => {
-      dataCache = snapshot.val();
-      actualizarConteoParticipantes();
-    });
-
-    // --- Enviar formulario ---
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nombre = form.nombre.value.trim();
-      const correo = form.correo.value.trim();
-      const regalo = form.regalo.value.trim();
-
-      push(participantesRef, { nombre, correo, regalo }).then(() => {
-        form.reset();
-        statusText.innerHTML = traducciones[idioma].registroOk;
-        setTimeout(() => statusText.innerHTML = "", 3000);
-      });
-
-      if (nombre.toLowerCase() === "famamv") {
-        mostrarBotonReinicio();
-      }
-    });
-
-    // --- Detección automática del modo admin ---
-    const inputNombre = document.getElementById("nombre");
-    inputNombre.addEventListener("input", () => {
-      if (inputNombre.value.toLowerCase() === "famamv") {
-        mostrarBotonReinicio();
-      } else {
-        adminDiv.innerHTML = "";
-      }
-    });
-
-    // --- Botón de reinicio ---
-    function mostrarBotonReinicio() {
-      adminDiv.innerHTML = `
-        <div style="text-align:center; margin-top:15px;">
-          <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
-            🔁 Reiniciar sistema
-          </button>
-          <p style="color:lime;font-weight:bold;">${traducciones[idioma].admin}</p>
-        </div>
-      `;
-      document.getElementById("resetBtn").addEventListener("click", () => {
-        if (confirm(traducciones[idioma].confirmReset)) {
-          remove(participantesRef).then(() => {
-            statusText.innerHTML = traducciones[idioma].resetOk;
-            setTimeout(() => statusText.innerHTML = "", 5000);
-          });
-        }
-      });
-    }
-
-    // Idioma inicial
-    cambiarIdioma("es");
-  </script>
-</body>
-</html>
+    // --- Func
