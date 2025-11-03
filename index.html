@@ -1,83 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Santa Secreto 🎅</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santa Secreto FAMAMV 🎅</title>
   <style>
     body {
-      font-family: "Comic Sans MS", cursive, sans-serif;
-      background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover;
+      font-family: Arial, sans-serif;
+      background-color: #fff5f5;
       text-align: center;
-      color: white;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
     }
-
+    h1 {
+      background-color: #b91c1c;
+      color: white;
+      padding: 15px;
+      margin: 0;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
     form {
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 15px;
+      background: white;
+      margin: 20px auto;
       padding: 20px;
-      display: inline-block;
-      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      max-width: 400px;
     }
-
     input, textarea {
-      display: block;
       width: 90%;
-      margin: 10px auto;
+      margin: 10px 0;
       padding: 10px;
-      border-radius: 10px;
-      border: none;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
     }
-
     button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: #ff5050;
+      background-color: #b91c1c;
       color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
     }
-
-    #lista {
-      margin-top: 30px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 15px;
-      padding: 15px;
-      display: inline-block;
+    button:hover {
+      background-color: #9a1515;
+    }
+    #contador {
+      font-weight: bold;
+      color: #b91c1c;
+      margin-top: 10px;
     }
   </style>
 </head>
 
 <body>
-  <h1>🎅 Santa Secreto 2025 🎁</h1>
-  <p>Ingresa tu nombre, correo y lo que te gustaría recibir de regalo:</p>
+  <h1>🎅 Santa Secreto FAMAMV 🎁</h1>
+  <img src="family.jpeg" alt="Familia">
 
-  <form id="regaloForm">
-    <input type="text" id="nombre" placeholder="Tu nombre" required />
-    <input type="email" id="correo" placeholder="Tu correo" required />
-    <textarea id="deseo" placeholder="Descripción del regalo" required></textarea>
+  <form id="formRegalo">
+    <h3>Regístrate aquí</h3>
+    <input type="text" id="nombre" placeholder="Tu nombre" required><br>
+    <input type="email" id="correo" placeholder="Tu correo" required><br>
+    <textarea id="regalo" placeholder="Describe el regalo que te gustaría" required></textarea><br>
     <button type="submit">Enviar</button>
+    <p id="contador">Personas registradas: 0 / 11</p>
   </form>
 
-  <div id="lista">
-    <h2>🎄 Participantes:</h2>
-    <p id="contador">0 personas registradas</p>
-    <ul id="nombres"></ul>
+  <!-- Botón de reinicio (oculto por defecto) -->
+  <div style="text-align:center; margin-top:20px;">
+    <button id="btnReiniciar" style="
+      display:none;
+      background-color:#b91c1c;
+      color:white;
+      border:none;
+      padding:10px 20px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:16px;">
+      🔁 Reiniciar sistema
+    </button>
+    <p id="mensajeReinicio" style="color:green; font-weight:bold;"></p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <!-- Firebase y script principal -->
+  <script type="module">
+    // Importar módulos de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-  <script>
-    // Configuración de Firebase
+    // Configuración de tu proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/",
       projectId: "santa-secreto-d2f26",
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
@@ -85,53 +109,60 @@
     };
 
     // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    // Referencia en la base de datos
-    const participantesRef = db.ref("participantes");
+    // Referencias a elementos HTML
+    const form = document.getElementById("formRegalo");
+    const nombreInput = document.getElementById("nombre");
+    const correoInput = document.getElementById("correo");
+    const regaloInput = document.getElementById("regalo");
+    const contadorEl = document.getElementById("contador");
+    const btnReiniciar = document.getElementById("btnReiniciar");
+    const mensajeReinicio = document.getElementById("mensajeReinicio");
 
-    // Enviar formulario
-    document.getElementById("regaloForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const nombre = document.getElementById("nombre").value;
-      const correo = document.getElementById("correo").value;
-      const deseo = document.getElementById("deseo").value;
-
-      // Guardar en Firebase
-      participantesRef.push({
-        nombre: nombre,
-        correo: correo,
-        deseo: deseo
-      });
-
-      // Limpiar formulario
-      document.getElementById("regaloForm").reset();
+    // --- ACTUALIZAR CONTADOR EN TIEMPO REAL ---
+    const participantesRef = ref(db, "participantes");
+    onValue(participantesRef, (snapshot) => {
+      const data = snapshot.val();
+      const cantidad = data ? Object.keys(data).length : 0;
+      contadorEl.textContent = `Personas registradas: ${cantidad} / 11`;
     });
 
-    // Mostrar lista en tiempo real
-    participantesRef.on("value", function(snapshot) {
-      const lista = document.getElementById("nombres");
-      const contador = document.getElementById("contador");
-      lista.innerHTML = "";
-      const data = snapshot.val();
+    // --- ENVÍO DEL FORMULARIO ---
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = nombreInput.value.trim();
+      const correo = correoInput.value.trim();
+      const regalo = regaloInput.value.trim();
 
-      if (data) {
-        const nombres = Object.values(data).map(item => item.nombre);
-        nombres.forEach(nombre => {
-          const li = document.createElement("li");
-          li.textContent = nombre;
-          lista.appendChild(li);
-        });
-        contador.textContent = `${nombres.length} personas registradas`;
-      } else {
-        contador.textContent = "0 personas registradas";
+      if (nombre.toLowerCase() === "famamv") {
+        alert("⚠️ Este nombre está reservado para el administrador.");
+        return;
+      }
+
+      try {
+        await push(participantesRef, { nombre, correo, regalo });
+        alert("🎄 Registro guardado con éxito!");
+        form.reset();
+      } catch (error) {
+        alert("❌ Error al guardar. Revisa la consola.");
+        console.error(error);
       }
     });
-  </script>
-</body>
-</html>
+
+    // --- MOSTRAR BOTÓN DE REINICIO SI NOMBRE = famamv ---
+    nombreInput.addEventListener("input", () => {
+      if (nombreInput.value.trim().toLowerCase() === "famamv") {
+        btnReiniciar.style.display = "inline-block";
+      } else {
+        btnReiniciar.style.display = "none";
+      }
+    });
+
+    // --- FUNCIÓN DE REINICIO DEL SISTEMA ---
+    btnReiniciar.addEventListener("click", async () => {
+      const confirmar = confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema?");
 
 
 
