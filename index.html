@@ -3,154 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Santa — Arango-Mantilla-Verkeyn Family :)</title>
+  <title>Secret Santa Family AMV</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
+      font-family: Arial, sans-serif;
       background-image: url('family.jpeg');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      color: white;
-      height: 100vh;
-      margin: 0;
-      backdrop-filter: brightness(0.6);
+      text-align: center;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+      padding: 40px;
     }
 
     h1 {
-      background-color: rgba(0,0,0,0.6);
-      display: inline-block;
-      padding: 10px 20px;
-      border-radius: 12px;
+      font-size: 2em;
+      margin-bottom: 10px;
     }
 
-    form {
-      margin-top: 20px;
+    .form-container {
       background-color: rgba(0, 0, 0, 0.6);
-      display: inline-block;
       padding: 20px;
       border-radius: 15px;
-      width: 90%;
-      max-width: 400px;
+      display: inline-block;
+      margin-top: 20px;
     }
 
-    input, textarea, button {
+    input, textarea {
       width: 90%;
-      margin: 10px 0;
       padding: 10px;
-      border-radius: 8px;
+      margin: 10px 0;
       border: none;
+      border-radius: 10px;
+      font-size: 1em;
     }
 
-    #participantList {
+    button {
+      background-color: #e63946;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d62828;
+    }
+
+    #participantsList {
       margin-top: 20px;
       background-color: rgba(0, 0, 0, 0.6);
-      display: inline-block;
-      padding: 15px;
+      padding: 10px;
       border-radius: 10px;
+      display: inline-block;
     }
 
     #resetButton {
-      background-color: red;
-      color: white;
       display: none;
-    }
-
-    #message {
+      background-color: #1d3557;
       margin-top: 15px;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>🎅 Secret Santa 2025 🎁<br>The Arango-Mantilla-Verkeyn Family</h1>
+  <h1>🎅 Secret Santa 🎁</h1>
+  <h2>Family / Familia / Familie Arango-Mantilla-Verkeyn</h2>
 
-  <form id="giftForm">
-    <input type="text" id="name" placeholder="Tu nombre / Your name / Je naam" required /><br>
-    <input type="email" id="email" placeholder="Tu correo electrónico / Your email / Je e-mailadres" required /><br>
-    <textarea id="gift" rows="4" placeholder="Describe el regalo que te gustaría / Describe the gift you’d like / Beschrijf het cadeau dat je wilt"></textarea><br>
-    <button type="submit" id="submitBtn">Enviar / Send / Verzenden</button>
-    <button id="resetButton" type="button" onclick="resetSystem()">🔁 Reiniciar sistema / Reset system / Systeem resetten</button>
-  </form>
-
-  <div id="participantList">
-    <h3>Participantes registrados / Registered participants / Geregistreerde deelnemers:</h3>
-    <ul id="names"></ul>
-    <p id="count">Total: 0 / 11</p>
+  <div class="form-container">
+    <h3>Enter your info / Ingresa tus datos / Vul je gegevens in</h3>
+    <input type="text" id="name" placeholder="Name / Nombre / Naam" required />
+    <input type="email" id="email" placeholder="Email / Correo / E-mail" required />
+    <textarea id="gift" placeholder="Gift description / Descripción del regalo / Beschrijving van het cadeau" rows="4"></textarea>
+    <button id="submitBtn">Send / Enviar / Verzenden</button>
   </div>
 
-  <p id="message"></p>
+  <div id="participantsList">
+    <h3>🎁 Registered Participants / Participantes registrados / Geregistreerde deelnemers:</h3>
+    <p id="participantCount">0 / 11</p>
+    <ul id="namesList"></ul>
+  </div>
 
-  <!-- Firebase SDK v8 -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <button id="resetButton">🔄 Reiniciar todo / Reset all / Alles resetten</button>
 
-  <script>
-    // Configuración Firebase
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com",
       projectId: "santa-secreto-d2f26",
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
-      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae"
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
-    const form = document.getElementById('giftForm');
-    const namesList = document.getElementById('names');
-    const countText = document.getElementById('count');
-    const resetBtn = document.getElementById('resetButton');
-    const message = document.getElementById('message');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const participantsRef = ref(db, "participants");
 
-    // Cargar datos en tiempo real
-    db.ref("participants").on("value", snapshot => {
-      const data = snapshot.val() || {};
-      const keys = Object.keys(data);
+    const submitBtn = document.getElementById("submitBtn");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const giftInput = document.getElementById("gift");
+    const participantCount = document.getElementById("participantCount");
+    const namesList = document.getElementById("namesList");
+    const resetButton = document.getElementById("resetButton");
+
+    // Enviar datos
+    submitBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const gift = giftInput.value.trim();
+
+      if (name && email && gift) {
+        push(participantsRef, { name, email, gift });
+        nameInput.value = "";
+        emailInput.value = "";
+        giftInput.value = "";
+      }
+    });
+
+    // Mostrar participantes
+    onValue(participantsRef, (snapshot) => {
+      const data = snapshot.val();
       namesList.innerHTML = "";
-      keys.forEach(k => {
-        const li = document.createElement("li");
-        li.textContent = data[k].name;
-        namesList.appendChild(li);
-      });
-      countText.textContent = `Total: ${keys.length} / 11`;
+      if (data) {
+        const entries = Object.values(data);
+        participantCount.textContent = `${entries.length} / 11`;
+        entries.forEach((p) => {
+          const li = document.createElement("li");
+          li.textContent = p.name;
+          namesList.appendChild(li);
+        });
+      } else {
+        participantCount.textContent = "0 / 11";
+      }
     });
 
-    // Envío del formulario
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const gift = document.getElementById("gift").value.trim();
-
-      if (!name || !email) {
-        alert("Completa todos los campos / Fill all fields / Vul alle velden in");
-        return;
+    // Mostrar botón admin si escribe famamv
+    nameInput.addEventListener("input", () => {
+      if (nameInput.value.trim().toLowerCase() === "famamv") {
+        resetButton.style.display = "inline-block";
+      } else {
+        resetButton.style.display = "none";
       }
-
-      if (name.toLowerCase() === "famamv") {
-        resetBtn.style.display = "block";
-        message.textContent = "";
-        return;
-      }
-
-      db.ref("participants").push({ name, email, gift });
-      form.reset();
     });
 
-    // Reinicio total
-    function resetSystem() {
-      if (confirm("¿Seguro que deseas reiniciar el sistema? / Are you sure you want to reset the system? / Weet je zeker dat je het systeem wilt resetten?")) {
-        db.ref("participants").remove();
-        message.textContent = "✅ Sistema reiniciado / System reset / Systeem gereset.";
-        resetBtn.style.display = "none";
-        setTimeout(() => message.textContent = "", 5000);
+    // Reiniciar base de datos
+    resetButton.addEventListener("click", () => {
+      if (confirm("¿Seguro que quieres reiniciar todo?")) {
+        remove(participantsRef);
+        alert("Datos reiniciados correctamente.");
       }
-    }
+    });
   </script>
 </body>
 </html>
-
