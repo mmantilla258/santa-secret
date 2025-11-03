@@ -3,297 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎅 Santa Secreto — Familia Arango-Mantilla-Verkeyn 🎁</title>
+  <title>Santa Secreto Familia Arango-Mantilla-Verkeyn</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
     body {
-      margin: 0;
-      padding: 0;
-      background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
-    }
-
-    .overlay {
-      background-color: rgba(0, 0, 0, 0.55);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      position: relative;
-    }
-
-    /* --- Botones de idioma --- */
-    .lang-buttons {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .lang-buttons button {
-      background: rgba(255, 255, 255, 0.2);
+      background-image: url('family.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      padding: 5px 10px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background 0.3s;
-    }
-
-    .lang-buttons button:hover {
-      background: rgba(255, 255, 255, 0.4);
+      height: 100vh;
+      margin: 0;
+      backdrop-filter: brightness(0.6);
     }
 
     h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-
-    p {
-      margin-top: 0;
-      font-size: 1.1em;
+      background-color: rgba(0,0,0,0.6);
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 12px;
     }
 
     form {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 25px;
+      margin-top: 20px;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: inline-block;
+      padding: 20px;
       border-radius: 15px;
-      backdrop-filter: blur(5px);
-      width: 100%;
-      max-width: 350px;
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    input, textarea {
       width: 90%;
+      max-width: 400px;
+    }
+
+    input, textarea, button {
+      width: 90%;
+      margin: 10px 0;
       padding: 10px;
-      margin: 8px 0;
-      border: none;
       border-radius: 8px;
-      font-size: 1em;
-      text-align: center;
+      border: none;
     }
 
-    textarea {
-      resize: none;
-      height: 80px;
+    #participantList {
+      margin-top: 20px;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: inline-block;
+      padding: 15px;
+      border-radius: 10px;
     }
 
-    button {
-      background-color: #e63946;
+    #resetButton {
+      background-color: red;
       color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1em;
-      margin-top: 10px;
-      transition: background 0.3s;
+      display: none;
     }
 
-    button:hover {
-      background-color: #ff4d4d;
-    }
-
-    #participantes {
-      margin-top: 20px;
-      font-size: 1.1em;
-    }
-
-    #status {
-      color: #8ef08e;
+    #message {
+      margin-top: 15px;
       font-weight: bold;
-      margin-top: 10px;
-    }
-
-    #adminDiv {
-      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <!-- Botones de idioma -->
-    <div class="lang-buttons">
-      <button id="btn-es">Español 🇨🇴</button>
-      <button id="btn-en">English 🇬🇧</button>
-      <button id="btn-nl">Nederlands 🇳🇱</button>
-    </div>
+  <h1>🎅 Santa Secreto / Secret Santa / Geheim Santa 🎁<br>Familia / Family / Familie Arango-Mantilla-Verkeyn</h1>
 
-    <h1 id="title">🎅 Santa Secreto 2025 🎁</h1>
-    <p id="subtitle">Ingresa tu nombre, correo y lo que te gustaría recibir de regalo</p>
+  <form id="giftForm">
+    <input type="text" id="name" placeholder="Tu nombre / Your name / Je naam" required /><br>
+    <input type="email" id="email" placeholder="Tu correo electrónico / Your email / Je e-mailadres" required /><br>
+    <textarea id="gift" rows="4" placeholder="Describe el regalo que te gustaría / Describe the gift you’d like / Beschrijf het cadeau dat je wilt"></textarea><br>
+    <button type="submit" id="submitBtn">Enviar / Send / Verzenden</button>
+    <button id="resetButton" type="button" onclick="resetSystem()">🔁 Reiniciar sistema / Reset system / Systeem resetten</button>
+  </form>
 
-    <form id="form">
-      <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required />
-      <input id="correo" name="correo" type="email" placeholder="Tu correo" required />
-      <textarea id="regalo" name="regalo" placeholder="Descripción del regalo" required></textarea>
-      <button type="submit" id="sendBtn">Enviar</button>
-    </form>
-
-    <p id="status"></p>
-    <div id="participantes"></div>
-    <div id="adminDiv"></div>
+  <div id="participantList">
+    <h3>Participantes registrados / Registered participants / Geregistreerde deelnemers:</h3>
+    <ul id="names"></ul>
+    <p id="count">Total: 0 / 11</p>
   </div>
 
-  <!-- Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  <p id="message"></p>
 
-    // --- Configuración Firebase ---
+  <!-- Firebase SDK v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com",
       projectId: "santa-secreto-d2f26",
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
-      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com"
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const participantesRef = ref(db, "participantes");
+    const form = document.getElementById('giftForm');
+    const namesList = document.getElementById('names');
+    const countText = document.getElementById('count');
+    const resetBtn = document.getElementById('resetButton');
+    const message = document.getElementById('message');
 
-    // Referencias DOM
-    const form = document.getElementById("form");
-    const participantesDiv = document.getElementById("participantes");
-    const statusText = document.getElementById("status");
-    const adminDiv = document.getElementById("adminDiv");
-
-    // --- Traducciones ---
-    const traducciones = {
-      es: {
-        title: "🎅 Santa Secreto 2025 🎁",
-        subtitle: "Ingresa tu nombre, correo y lo que te gustaría recibir de regalo",
-        placeholderNombre: "Tu nombre",
-        placeholderCorreo: "Tu correo",
-        placeholderRegalo: "Descripción del regalo",
-        enviar: "Enviar",
-        participantes: "🎄 <b>Participantes:</b><br>{count} personas registradas",
-        registroOk: "✅ Registro exitoso!",
-        admin: "🛠️ Modo administrador activo",
-        confirmReset: "⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.",
-        resetOk: "✅ Sistema reiniciado con éxito."
-      },
-      en: {
-        title: "🎅 Secret Santa 2025 🎁",
-        subtitle: "Enter your name, email, and what you would like to receive as a gift",
-        placeholderNombre: "Your name",
-        placeholderCorreo: "Your email",
-        placeholderRegalo: "Gift description",
-        enviar: "Submit",
-        participantes: "🎄 <b>Participants:</b><br>{count} registered people",
-        registroOk: "✅ Successfully registered!",
-        admin: "🛠️ Admin mode active",
-        confirmReset: "⚠️ Are you sure you want to reset everything? This cannot be undone.",
-        resetOk: "✅ System successfully reset."
-      },
-      nl: {
-        title: "🎅 Geheim Kerstman 2025 🎁",
-        subtitle: "Voer je naam, e-mail en het cadeau dat je graag wilt ontvangen in",
-        placeholderNombre: "Je naam",
-        placeholderCorreo: "Je e-mail",
-        placeholderRegalo: "Beschrijving van het cadeau",
-        enviar: "Verzenden",
-        participantes: "🎄 <b>Deelnemers:</b><br>{count} geregistreerde personen",
-        registroOk: "✅ Succesvol geregistreerd!",
-        admin: "🛠️ Beheermodus actief",
-        confirmReset: "⚠️ Weet je zeker dat je het hele systeem wilt resetten? Deze actie kan niet ongedaan worden gemaakt.",
-        resetOk: "✅ Systeem succesvol gereset."
-      }
-    };
-
-    let idioma = "es";
-    let dataCache = null;
-
-    // --- Función de idioma ---
-    function cambiarIdioma(lang) {
-      idioma = lang;
-      const t = traducciones[lang];
-      document.getElementById("title").innerHTML = t.title;
-      document.getElementById("subtitle").innerHTML = t.subtitle;
-      document.getElementById("nombre").placeholder = t.placeholderNombre;
-      document.getElementById("correo").placeholder = t.placeholderCorreo;
-      document.getElementById("regalo").placeholder = t.placeholderRegalo;
-      document.getElementById("sendBtn").innerText = t.enviar;
-      actualizarConteoParticipantes();
-    }
-
-    // --- Botones de idioma ---
-    document.getElementById("btn-es").onclick = () => cambiarIdioma("es");
-    document.getElementById("btn-en").onclick = () => cambiarIdioma("en");
-    document.getElementById("btn-nl").onclick = () => cambiarIdioma("nl");
-
-    // --- Actualizar conteo ---
-    function actualizarConteoParticipantes() {
-      const data = dataCache;
-      const count = data ? Object.keys(data).length : 0;
-      const texto = traducciones[idioma].participantes.replace("{count}", count);
-      participantesDiv.innerHTML = texto;
-    }
-
-    // --- Escucha base de datos ---
-    onValue(participantesRef, (snapshot) => {
-      dataCache = snapshot.val();
-      actualizarConteoParticipantes();
-    });
-
-    // --- Envío formulario ---
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nombre = form.nombre.value.trim();
-      const correo = form.correo.value.trim();
-      const regalo = form.regalo.value.trim();
-
-      push(participantesRef, { nombre, correo, regalo }).then(() => {
-        form.reset();
-        statusText.innerHTML = traducciones[idioma].registroOk;
-        setTimeout(() => statusText.innerHTML = "", 3000);
+    // Cargar datos en tiempo real
+    db.ref("participants").on("value", snapshot => {
+      const data = snapshot.val() || {};
+      const keys = Object.keys(data);
+      namesList.innerHTML = "";
+      keys.forEach(k => {
+        const li = document.createElement("li");
+        li.textContent = data[k].name;
+        namesList.appendChild(li);
       });
-
-      if (nombre.toLowerCase() === "famamv") mostrarBotonReinicio();
+      countText.textContent = `Total: ${keys.length} / 11`;
     });
 
-    const inputNombre = document.getElementById("nombre");
-    inputNombre.addEventListener("input", () => {
-      if (inputNombre.value.toLowerCase() === "famamv") mostrarBotonReinicio();
-      else adminDiv.innerHTML = "";
+    // Envío del formulario
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const gift = document.getElementById("gift").value.trim();
+
+      if (!name || !email) {
+        alert("Completa todos los campos / Fill all fields / Vul alle velden in");
+        return;
+      }
+
+      if (name.toLowerCase() === "famamv") {
+        resetBtn.style.display = "block";
+        message.textContent = "";
+        return;
+      }
+
+      db.ref("participants").push({ name, email, gift });
+      form.reset();
     });
 
-    function mostrarBotonReinicio() {
-      adminDiv.innerHTML = `
-        <div style="text-align:center; margin-top:15px;">
-          <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
-            🔁 Reiniciar sistema
-          </button>
-          <p style="color:lime;font-weight:bold;">${traducciones[idioma].admin}</p>
-        </div>
-      `;
-      document.getElementById("resetBtn").onclick = () => {
-        if (confirm(traducciones[idioma].confirmReset)) {
-          remove(participantesRef).then(() => {
-            statusText.innerHTML = traducciones[idioma].resetOk;
-            setTimeout(() => statusText.innerHTML = "", 5000);
-          });
-        }
-      };
+    // Reinicio total
+    function resetSystem() {
+      if (confirm("¿Seguro que deseas reiniciar el sistema? / Are you sure you want to reset the system? / Weet je zeker dat je het systeem wilt resetten?")) {
+        db.ref("participants").remove();
+        message.textContent = "✅ Sistema reiniciado / System reset / Systeem gereset.";
+        resetBtn.style.display = "none";
+        setTimeout(() => message.textContent = "", 5000);
+      }
     }
-
-    cambiarIdioma("es");
   </script>
 </body>
 </html>
