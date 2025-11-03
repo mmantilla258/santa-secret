@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎅 Santa Secreto — Familia Arango-Mantilla-Verkeyn 🎁</title>
   <style>
     * {
@@ -27,6 +27,31 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
+      position: relative;
+    }
+
+    /* --- Botones de idioma --- */
+    .lang-buttons {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .lang-buttons button {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background 0.3s;
+    }
+
+    .lang-buttons button:hover {
+      background: rgba(255, 255, 255, 0.4);
     }
 
     h1 {
@@ -101,14 +126,21 @@
 </head>
 <body>
   <div class="overlay">
-    <h1>🎅 Santa Secreto 2025 🎁</h1>
-    <p>Ingresa tu nombre, correo y lo que te gustaría recibir de regalo</p>
+    <!-- Botones de idioma -->
+    <div class="lang-buttons">
+      <button id="btn-es">Español 🇨🇴</button>
+      <button id="btn-en">English 🇬🇧</button>
+      <button id="btn-nl">Nederlands 🇳🇱</button>
+    </div>
+
+    <h1 id="title">🎅 Santa Secreto 2025 🎁</h1>
+    <p id="subtitle">Ingresa tu nombre, correo y lo que te gustaría recibir de regalo</p>
 
     <form id="form">
       <input id="nombre" type="text" placeholder="Tu nombre" required />
       <input id="correo" type="email" placeholder="Tu correo" required />
       <textarea id="regalo" placeholder="Descripción del regalo" required></textarea>
-      <button type="submit">Enviar</button>
+      <button type="submit" id="sendBtn">Enviar</button>
     </form>
 
     <p id="status"></p>
@@ -136,44 +168,108 @@
     const db = getDatabase(app);
     const participantesRef = ref(db, "participantes");
 
-    // --- Referencias del DOM ---
+    // --- Referencias DOM ---
     const form = document.getElementById("form");
     const participantesDiv = document.getElementById("participantes");
     const statusText = document.getElementById("status");
     const adminDiv = document.getElementById("adminDiv");
 
-    // --- Mostrar cantidad en tiempo real ---
-    onValue(participantesRef, (snapshot) => {
-      const data = snapshot.val();
+    // --- Traducciones ---
+    const traducciones = {
+      es: {
+        title: "🎅 Santa Secreto 2025 🎁",
+        subtitle: "Ingresa tu nombre, correo y lo que te gustaría recibir de regalo",
+        placeholderNombre: "Tu nombre",
+        placeholderCorreo: "Tu correo",
+        placeholderRegalo: "Descripción del regalo",
+        enviar: "Enviar",
+        participantes: "🎄 <b>Participantes:</b><br>{count} personas registradas",
+        registroOk: "✅ Registro exitoso!",
+        admin: "🛠️ Modo administrador activo",
+        confirmReset: "⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.",
+        resetOk: "✅ Sistema reiniciado con éxito."
+      },
+      en: {
+        title: "🎅 Secret Santa 2025 🎁",
+        subtitle: "Enter your name, email, and what you would like to receive as a gift",
+        placeholderNombre: "Your name",
+        placeholderCorreo: "Your email",
+        placeholderRegalo: "Gift description",
+        enviar: "Submit",
+        participantes: "🎄 <b>Participants:</b><br>{count} registered people",
+        registroOk: "✅ Successfully registered!",
+        admin: "🛠️ Admin mode active",
+        confirmReset: "⚠️ Are you sure you want to reset the entire system? This action cannot be undone.",
+        resetOk: "✅ System successfully reset."
+      },
+      nl: {
+        title: "🎅 Geheim Kerstman 2025 🎁",
+        subtitle: "Voer je naam, e-mail en het cadeau dat je graag wilt ontvangen in",
+        placeholderNombre: "Je naam",
+        placeholderCorreo: "Je e-mail",
+        placeholderRegalo: "Beschrijving van het cadeau",
+        enviar: "Verzenden",
+        participantes: "🎄 <b>Deelnemers:</b><br>{count} geregistreerde personen",
+        registroOk: "✅ Succesvol geregistreerd!",
+        admin: "🛠️ Beheermodus actief",
+        confirmReset: "⚠️ Weet je zeker dat je het hele systeem wilt resetten? Deze actie kan niet ongedaan worden gemaakt.",
+        resetOk: "✅ Systeem succesvol gereset."
+      }
+    };
+
+    let idioma = "es";
+
+    // --- Función para aplicar idioma ---
+    function cambiarIdioma(lang) {
+      idioma = lang;
+      const t = traducciones[lang];
+      document.getElementById("title").innerHTML = t.title;
+      document.getElementById("subtitle").innerHTML = t.subtitle;
+      document.getElementById("nombre").placeholder = t.placeholderNombre;
+      document.getElementById("correo").placeholder = t.placeholderCorreo;
+      document.getElementById("regalo").placeholder = t.placeholderRegalo;
+      document.getElementById("sendBtn").innerText = t.enviar;
+      actualizarConteoParticipantes();
+    }
+
+    // --- Botones de idioma ---
+    document.getElementById("btn-es").addEventListener("click", () => cambiarIdioma("es"));
+    document.getElementById("btn-en").addEventListener("click", () => cambiarIdioma("en"));
+    document.getElementById("btn-nl").addEventListener("click", () => cambiarIdioma("nl"));
+
+    // --- Mostrar cantidad de participantes ---
+    let dataCache = null;
+    function actualizarConteoParticipantes() {
+      const data = dataCache;
       const count = data ? Object.keys(data).length : 0;
-      participantesDiv.innerHTML = `🎄 <b>Participantes:</b><br>${count} personas registradas`;
+      const texto = traducciones[idioma].participantes.replace("{count}", count);
+      participantesDiv.innerHTML = texto;
+    }
+
+    onValue(participantesRef, (snapshot) => {
+      dataCache = snapshot.val();
+      actualizarConteoParticipantes();
     });
 
-    // --- Enviar datos ---
+    // --- Enviar formulario ---
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const nombre = form.nombre.value.trim();
       const correo = form.correo.value.trim();
       const regalo = form.regalo.value.trim();
 
-      // Guardar participante
-      push(participantesRef, {
-        nombre,
-        correo,
-        regalo
-      }).then(() => {
+      push(participantesRef, { nombre, correo, regalo }).then(() => {
         form.reset();
-        statusText.innerHTML = "✅ Registro exitoso!";
+        statusText.innerHTML = traducciones[idioma].registroOk;
         setTimeout(() => statusText.innerHTML = "", 3000);
       });
 
-      // Mostrar botón admin si el nombre es famamv
       if (nombre.toLowerCase() === "famamv") {
         mostrarBotonReinicio();
       }
     });
 
-    // --- Mostrar botón admin al escribir famamv ---
+    // --- Detección automática del modo admin ---
     const inputNombre = document.getElementById("nombre");
     inputNombre.addEventListener("input", () => {
       if (inputNombre.value.toLowerCase() === "famamv") {
@@ -183,26 +279,28 @@
       }
     });
 
-    // --- Función para reiniciar sistema ---
+    // --- Botón de reinicio ---
     function mostrarBotonReinicio() {
       adminDiv.innerHTML = `
         <div style="text-align:center; margin-top:15px;">
           <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
             🔁 Reiniciar sistema
           </button>
-          <p style="color:lime;font-weight:bold;">🛠️ Modo administrador activo</p>
+          <p style="color:lime;font-weight:bold;">${traducciones[idioma].admin}</p>
         </div>
       `;
-
       document.getElementById("resetBtn").addEventListener("click", () => {
-        if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.")) {
+        if (confirm(traducciones[idioma].confirmReset)) {
           remove(participantesRef).then(() => {
-            statusText.innerHTML = "✅ Sistema reiniciado con éxito.";
+            statusText.innerHTML = traducciones[idioma].resetOk;
             setTimeout(() => statusText.innerHTML = "", 5000);
           });
         }
       });
     }
+
+    // Idioma inicial
+    cambiarIdioma("es");
   </script>
 </body>
 </html>
