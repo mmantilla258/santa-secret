@@ -82,7 +82,7 @@
 
   <div id="participantsList">
     <h3>🎁 Registered Participants / Participantes registrados / Geregistreerde deelnemers:</h3>
-    <p id="participantCount">0 / 11</p>
+    <p id="participantCount">0 / 10</p>
     <ul id="namesList"></ul>
   </div>
 
@@ -135,14 +135,14 @@
       namesList.innerHTML = "";
       if (data) {
         const entries = Object.values(data);
-        participantCount.textContent = `${entries.length} / 11`;
+        participantCount.textContent = `${entries.length} / 10`;
         entries.forEach((p) => {
           const li = document.createElement("li");
           li.textContent = p.name;
           namesList.appendChild(li);
         });
       } else {
-        participantCount.textContent = "0 / 11";
+        participantCount.textContent = "0 / 10";
       }
     });
 
@@ -165,3 +165,4 @@
   </script>
 </body>
 </html>
+
