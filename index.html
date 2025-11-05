@@ -70,7 +70,7 @@
 </head>
 <body>
   <h1>🎅 Secret Santa 🎁</h1>
-  <h2>Family / Familia / Familie Arango-Mantilla-Verkeyn</h2>
+  <h2>Family Arango-Mantilla-Verkeyn</h2>
 
   <div class="form-container">
     <h3>Enter your info / Ingresa tus datos / Vul je gegevens in</h3>
@@ -82,7 +82,7 @@
 
   <div id="participantsList">
     <h3>🎁 Registered Participants / Participantes registrados / Geregistreerde deelnemers:</h3>
-    <p id="participantCount">0 / 10</p>
+    <p id="participantCount">0 / 11</p>
     <ul id="namesList"></ul>
   </div>
 
@@ -135,14 +135,14 @@
       namesList.innerHTML = "";
       if (data) {
         const entries = Object.values(data);
-        participantCount.textContent = `${entries.length} / 10`;
+        participantCount.textContent = `${entries.length} / 11`;
         entries.forEach((p) => {
           const li = document.createElement("li");
           li.textContent = p.name;
           namesList.appendChild(li);
         });
       } else {
-        participantCount.textContent = "0 / 10";
+        participantCount.textContent = "0 / 11";
       }
     });
 
@@ -165,4 +165,5 @@
   </script>
 </body>
 </html>
+
 
