@@ -1,134 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎅 Secret Santa 2025 🎁</title>
+  <title>Secret Santa 2025 🎁</title>
   <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
     body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
       background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: white;
-      text-align: center;
+      background-size: cover; color: white; text-align: center;
     }
-
     .overlay {
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgba(0, 0, 0, 0.55);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
       padding: 20px;
     }
-
+    h1 { font-size: 2.5em; margin-bottom: 10px; }
+    p { margin-top: 0; font-size: 1.1em; }
     form {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 25px;
-      border-radius: 15px;
-      backdrop-filter: blur(6px);
-      max-width: 350px;
-      width: 90%;
+      background: rgba(255,255,255,0.1);
+      padding: 25px; border-radius: 15px;
+      backdrop-filter: blur(5px);
+      width: 100%; max-width: 350px;
+      margin-top: 20px; display: flex;
+      flex-direction: column; align-items: center;
     }
-
     input, textarea {
-      width: 90%;
-      margin: 8px 0;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 1em;
-      text-align: center;
+      width: 90%; padding: 10px; margin: 8px 0;
+      border: none; border-radius: 8px;
+      font-size: 1em; text-align: center;
     }
-
+    textarea { resize: none; height: 80px; }
     button {
-      background-color: #e63946;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
+      background-color: #e63946; color: white;
+      border: none; padding: 10px 20px;
+      border-radius: 8px; cursor: pointer;
+      font-size: 1em; margin-top: 10px;
       transition: background 0.3s;
     }
-
-    button:hover {
-      background-color: #ff4d4d;
-    }
-
-    #status {
-      color: #8ef08e;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    #participantes {
-      margin-top: 15px;
-      font-size: 1.1em;
-    }
-
-    .admin-btn {
-      display: none;
-      margin-top: 15px;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 1em;
-      cursor: pointer;
-    }
-
-    #resetBtn {
-      background-color: #0077b6;
-    }
-
-    #resetBtn:hover {
-      background-color: #00b4d8;
-    }
-
-    #sendManualBtn {
-      background-color: #ffd166;
-      color: black;
-    }
-
-    #sendManualBtn:hover {
-      background-color: #ffca3a;
-    }
+    button:hover { background-color: #ff4d4d; }
+    #participantes { margin-top: 20px; font-size: 1.1em; }
+    #status { color: #8ef08e; font-weight: bold; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="overlay">
     <h1>🎅 Secret Santa 2025 🎁</h1>
     <p>Family Arango-Mantilla-Verkeyn</p>
-    <p>Enter your name, email and what gift you’d like to receive 🎁</p>
+    <p>Enter your name / email / gift idea</p>
 
     <form id="form">
-      <input id="nombre" type="text" placeholder="Name / Nombre / Naam" required />
-      <input id="correo" type="email" placeholder="Email / Correo / E-mail" required />
-      <textarea id="regalo" placeholder="Gift / Regalo / Geschenk" required></textarea>
-      <button type="submit">Send / Enviar / Verzenden</button>
+      <input id="nombre" type="text" placeholder="Nombre / Name / Naam" required />
+      <input id="correo" type="email" placeholder="Correo / Email / E-mail" required />
+      <textarea id="regalo" placeholder="Regalo / Gift / Geschenk" required></textarea>
+      <button type="submit" id="sendBtn">Enviar / Send / Verzenden</button>
     </form>
 
     <p id="status"></p>
     <div id="participantes"></div>
-
-    <button id="resetBtn" class="admin-btn">🔁 Reset system</button>
-    <button id="sendManualBtn" class="admin-btn">📨 Send emails manually</button>
+    <div id="adminDiv"></div>
   </div>
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    (function() {
-      emailjs.init("SGuCPgvO1PEEQ3zTz");
-    })();
-  </script>
-
-  <!-- Firebase -->
+  <!-- Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
+
+    emailjs.init("SGuCPgvO1PEEQ3zTz");
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
@@ -145,43 +87,25 @@
     const participantesRef = ref(db, "participantes");
 
     const form = document.getElementById("form");
-    const statusText = document.getElementById("status");
     const participantesDiv = document.getElementById("participantes");
-    const resetBtn = document.getElementById("resetBtn");
-    const sendManualBtn = document.getElementById("sendManualBtn");
-    const nombreInput = document.getElementById("nombre");
+    const statusText = document.getElementById("status");
+    const adminDiv = document.getElementById("adminDiv");
 
-    let participantes = {};
-
-    // Actualizar lista en pantalla
-    function actualizarLista(data) {
-      const count = Object.keys(data).length;
-      const names = Object.values(data).map(p => p.nombre).join(", ");
-      participantesDiv.innerHTML = `🎄 <b>${count} participants registered:</b><br>${names}`;
+    // 🔹 Mostrar lista de participantes
+    let dataCache = null;
+    function actualizarParticipantes() {
+      const data = dataCache;
+      const count = data ? Object.keys(data).length : 0;
+      const nombres = data ? Object.values(data).map(p => p.nombre).join("<br>") : "";
+      participantesDiv.innerHTML = `🎄 <b>${count}</b> participantes:<br>${nombres}`;
     }
 
-    // Escuchar base de datos
     onValue(participantesRef, (snapshot) => {
-      participantes = snapshot.val() || {};
-      actualizarLista(participantes);
-
-      if (Object.keys(participantes).length === 11) {
-        realizarSorteoYEnviar();
-      }
+      dataCache = snapshot.val();
+      actualizarParticipantes();
     });
 
-    // Detectar modo admin
-    nombreInput.addEventListener("input", () => {
-      if (nombreInput.value.trim().toLowerCase() === "famamv") {
-        resetBtn.style.display = "inline-block";
-        sendManualBtn.style.display = "inline-block";
-      } else {
-        resetBtn.style.display = "none";
-        sendManualBtn.style.display = "none";
-      }
-    });
-
-    // Enviar formulario
+    // 🔹 Enviar formulario
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const nombre = form.nombre.value.trim();
@@ -190,71 +114,81 @@
 
       push(participantesRef, { nombre, correo, regalo }).then(() => {
         form.reset();
-        statusText.innerText = "✅ Registration complete!";
-        setTimeout(() => statusText.innerText = "", 3000);
+        statusText.innerHTML = "✅ Registro exitoso!";
+        setTimeout(() => statusText.innerHTML = "", 3000);
       });
+
+      if (nombre.toLowerCase() === "famamv") mostrarBotonesAdmin();
     });
 
-    // Botón: Reiniciar sistema
-    resetBtn.addEventListener("click", async () => {
-      if (confirm("⚠️ Are you sure you want to reset everything?")) {
-        await remove(participantesRef);
-        alert("🔥 System successfully reset.");
-        location.reload();
-      }
-    });
+    // 🔹 Mostrar botones de admin
+    function mostrarBotonesAdmin() {
+      adminDiv.innerHTML = `
+        <div style="text-align:center; margin-top:15px;">
+          <button id="resetBtn" style="background-color:#ff4444;">🔁 Reiniciar sistema</button>
+          <button id="sendEmailsBtn" style="background-color:#2a9d8f; margin-left:10px;">📧 Enviar correos</button>
+        </div>
+      `;
+      document.getElementById("resetBtn").addEventListener("click", resetearSistema);
+      document.getElementById("sendEmailsBtn").addEventListener("click", enviarCorreos);
+    }
 
-    // Botón: Enviar correos manualmente
-    sendManualBtn.addEventListener("click", () => {
-      if (Object.keys(participantes).length < 2) {
-        alert("Need at least 2 participants to send emails.");
-        return;
+    // 🔹 Reiniciar sistema
+    function resetearSistema() {
+      if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema?")) {
+        remove(participantesRef).then(() => {
+          statusText.innerHTML = "✅ Sistema reiniciado.";
+          setTimeout(() => statusText.innerHTML = "", 4000);
+        });
       }
-      if (confirm("📨 Send emails manually now?")) {
-        realizarSorteoYEnviar();
-      }
-    });
+    }
 
-    // --- Sorteo sin repetidos ---
-    function mezclarYEmparejar(lista) {
-      const nombres = lista.map(p => p.nombre);
-      const receptores = [...nombres];
-      let valido = false;
-
+    // 🔹 Generar emparejamientos (sin repetidos)
+    function generarAsignaciones(participantes) {
+      let shuffled, valido = false;
       while (!valido) {
-        for (let i = receptores.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [receptores[i], receptores[j]] = [receptores[j], receptores[i]];
+        shuffled = [...participantes].sort(() => Math.random() - 0.5);
+        valido = true;
+        for (let i = 0; i < participantes.length; i++) {
+          if (participantes[i].nombre === shuffled[i].nombre) {
+            valido = false;
+            break;
+          }
         }
-        valido = !receptores.some((r, i) => r === nombres[i]);
       }
-
-      return nombres.map((dador, i) => ({
-        dador,
-        correo: lista[i].correo,
-        receptor: receptores[i],
-        regalo: lista.find(p => p.nombre === receptores[i]).regalo
+      return participantes.map((p, i) => ({
+        santa: p,
+        destinatario: shuffled[i]
       }));
     }
 
-    // --- Enviar correos ---
-    function realizarSorteoYEnviar() {
-      const lista = Object.values(participantes);
-      const parejas = mezclarYEmparejar(lista);
+    // 🔹 Enviar correos
+    function enviarCorreos() {
+      const data = dataCache;
+      if (!data) return alert("❌ No hay participantes.");
+      const participantes = Object.values(data);
+      if (participantes.length < 2) return alert("❌ Se necesitan al menos 2 participantes.");
 
-      parejas.forEach(par => {
+      const asignaciones = generarAsignaciones(participantes);
+
+      asignaciones.forEach(par => {
         emailjs.send("service_x20t9vh", "template_yla91y2", {
-          to_name: par.dador,
-          to_email: par.correo,
-          secret_friend: par.receptor,
-          secret_gift: par.regalo
-        })
-        .then(() => console.log("✅ Correo enviado a", par.dador))
-        .catch(err => console.error("❌ Error al enviar correo:", err));
+          to_name: par.santa.nombre,
+          to_email: par.santa.correo,
+          message: `🎅 Hola ${par.santa.nombre}!\n\nTe tocó regalarle a: ${par.destinatario.nombre} 🎁\nDesea: ${par.destinatario.regalo}\n\n¡Feliz intercambio! 🎄`
+        }).then(() => {
+          console.log(`Correo enviado a ${par.santa.nombre}`);
+        }).catch(err => console.error("Error enviando correo:", err));
       });
 
-      alert("✅ All emails have been sent!");
+      alert("✅ Correos enviados exitosamente!");
     }
+
+    // 🔹 Detectar admin
+    document.getElementById("nombre").addEventListener("input", (e) => {
+      if (e.target.value.toLowerCase() === "famamv") mostrarBotonesAdmin();
+      else adminDiv.innerHTML = "";
+    });
   </script>
 </body>
 </html>
