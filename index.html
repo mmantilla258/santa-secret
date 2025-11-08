@@ -2,193 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🎅 Secret Santa - Family Arango Mantilla Verkeyn 🎁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secret Santa Family</title>
+  <link rel="icon" type="image/jpeg" href="family.jpeg" />
   <style>
     body {
-      background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      font-family: Arial, sans-serif;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ff5f6d, #ffc371);
       text-align: center;
+      padding: 40px;
       color: white;
-      margin: 0;
-      padding: 30px;
     }
-
     h1 {
-      font-size: 2em;
+      font-size: 2.5em;
       margin-bottom: 10px;
     }
-
-    input, textarea, button {
-      margin: 5px;
+    form {
+      margin: 20px auto;
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+    }
+    input {
+      width: 90%;
       padding: 10px;
-      border-radius: 8px;
+      margin: 10px 0;
       border: none;
+      border-radius: 10px;
       font-size: 1em;
     }
-
-    textarea {
-      resize: none;
-      width: 250px;
-      height: 60px;
-    }
-
-    #participants {
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
-      display: inline-block;
-      padding: 15px;
-      margin-top: 20px;
-    }
-
-    #adminBtn {
-      display: none;
-      background: crimson;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
+    button {
+      background-color: #ffffff;
+      color: #ff5f6d;
       padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
       cursor: pointer;
-      margin-top: 20px;
-    }
-
-    #count {
-      margin-top: 10px;
       font-weight: bold;
+    }
+    button:hover {
+      background-color: #ff5f6d;
+      color: white;
+    }
+    #adminPanel {
+      display: none;
+      margin-top: 30px;
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 15px;
+    }
+    #participantsList {
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
-  <h1>🎅 Secret Santa 2025 🎁</h1>
-  <p>Enter your name, email and gift idea below</p>
+  <h1>🎅 Secret Santa - Family Arango Mantilla Verkeyn 🎁</h1>
 
-  <div>
-    <input id="name" type="text" placeholder="Name / Nombre / Naam" /><br>
-    <input id="email" type="email" placeholder="Email" /><br>
-    <textarea id="gift" placeholder="Gift idea / Descripción del regalo"></textarea><br>
-    <button id="submitBtn">Submit / Enviar / Versturen</button>
+  <form id="registerForm">
+    <input type="text" id="name" placeholder="Your name" required />
+    <input type="email" id="email" placeholder="Your email" required />
+    <button type="submit">Register</button>
+  </form>
+
+  <h3 id="countText">Registered participants: 0</h3>
+  <ul id="participantsList"></ul>
+
+  <div id="adminPanel">
+    <h2>Admin Panel</h2>
+    <button id="sendEmailsBtn">Send Emails</button>
   </div>
 
-  <div id="participants"></div>
-  <p id="count"></p>
-
-  <button id="adminBtn">🎅 Force Secret Santa Email Send</button>
-
   <script type="module">
-    // --- Firebase ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, push, get, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, push, get, set, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
+    // 🔥 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/",
       projectId: "santa-secreto-d2f26",
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
-      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae"
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const participantsRef = ref(db, "participants");
 
-    // --- EmailJS ---
-    import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
-    emailjs.init("SGuCPgvO1PEEQ3zTz");
-
+    const form = document.getElementById("registerForm");
     const nameInput = document.getElementById("name");
     const emailInput = document.getElementById("email");
-    const giftInput = document.getElementById("gift");
-    const participantsDiv = document.getElementById("participants");
-    const countP = document.getElementById("count");
-    const adminBtn = document.getElementById("adminBtn");
+    const participantsList = document.getElementById("participantsList");
+    const countText = document.getElementById("countText");
+    const adminPanel = document.getElementById("adminPanel");
+    const sendEmailsBtn = document.getElementById("sendEmailsBtn");
 
-    // --- Registrar participante ---
-    document.getElementById("submitBtn").addEventListener("click", async () => {
+    // ✅ Registrar nuevo participante
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
       const name = nameInput.value.trim();
       const email = emailInput.value.trim();
-      const gift = giftInput.value.trim();
+      if (!name || !email) return alert("Please fill all fields");
 
-      if (!name || !email || !gift) {
-        alert("Please fill all fields!");
-        return;
-      }
-
-      await push(participantsRef, { name, email, gift });
-      alert("Registered successfully!");
+      const newRef = push(ref(db, "participants"));
+      await set(newRef, { name, email });
       nameInput.value = "";
       emailInput.value = "";
-      giftInput.value = "";
+      loadParticipants();
     });
 
-    // --- Mostrar nombres ---
-    onValue(participantsRef, (snapshot) => {
-      const data = snapshot.val();
-      participantsDiv.innerHTML = "";
-      let total = 0;
-
-      if (data) {
-        for (let key in data) {
-          participantsDiv.innerHTML += `<p>🎄 ${data[key].name}</p>`;
-          total++;
-        }
+    // ✅ Mostrar participantes registrados
+    async function loadParticipants() {
+      const snapshot = await get(ref(db, "participants"));
+      participantsList.innerHTML = "";
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const participants = Object.values(data);
+        countText.textContent = `Registered participants: ${participants.length}`;
+        participants.forEach(p => {
+          const li = document.createElement("li");
+          li.textContent = p.name;
+          participantsList.appendChild(li);
+        });
+      } else {
+        countText.textContent = "Registered participants: 0";
       }
+    }
 
-      countP.textContent = `Total registered: ${total}`;
-    });
+    loadParticipants();
 
-    // --- Modo admin (escribiendo famamv) ---
+    // ✅ Activar modo admin escribiendo "famamv"
     nameInput.addEventListener("input", () => {
-      if (nameInput.value.trim().toLowerCase() === "famamv") {
-        adminBtn.style.display = "inline-block";
+      if (nameInput.value.toLowerCase() === "famamv") {
+        adminPanel.style.display = "block";
       }
     });
 
-    // --- Botón admin: enviar correos ---
-    adminBtn.addEventListener("click", async () => {
-      const snapshot = await get(participantsRef);
-      if (!snapshot.exists()) {
-        alert("No participants found.");
-        return;
+    // ✅ Enviar correos manualmente (solo desde modo admin)
+    sendEmailsBtn.addEventListener("click", async () => {
+      const snapshot = await get(ref(db, "participants"));
+      if (!snapshot.exists()) return alert("No participants yet!");
+      const data = snapshot.val();
+      const participants = Object.values(data);
+
+      if (participants.length < 2) return alert("Not enough participants!");
+
+      // Crear asignaciones sin repeticiones ni duplicados
+      let receivers = [...participants];
+      let shuffled = false;
+      while (!shuffled) {
+        receivers.sort(() => Math.random() - 0.5);
+        shuffled = participants.every((p, i) => p.email !== receivers[i].email);
       }
 
-      const participants = Object.values(snapshot.val());
-      if (participants.length < 2) {
-        alert("Need at least 2 participants to assign.");
-        return;
-      }
-
-      // Mezclar receptores evitando que alguien se saque a sí mismo
-      let receivers;
-      do {
-        receivers = [...participants].sort(() => Math.random() - 0.5);
-      } while (receivers.some((r, i) => r.email === participants[i].email));
-
-      // Enviar correo a cada participante
-      for (let i = 0; i < participants.length; i++) {
-        const giver = participants[i];
-        const receiver = receivers[i];
-
-        const params = {
-          to_name: giver.name,
+      // Enviar correos con EmailJS
+      participants.forEach((p, i) => {
+        const assigned = receivers[i];
+        emailjs.send("service_x20t9vh", "template_yla91y2", {
+          to_name: p.name,
           from_name: "Secret Santa 🎅",
-          to_email: giver.email,
-          message: `Hi ${giver.name}! 🎁 You are the Secret Santa for ${receiver.name}.
-Gift idea they mentioned: ${receiver.gift}`
-        };
+          message: `Hi ${p.name}! Your Secret Santa is: ${assigned.name}. Keep it secret and prepare a nice gift! 🎁`,
+          to_email: p.email
+        }, "SGuCPgvO1PEEQ3zTz");
+      });
 
-        try {
-          await emailjs.send("service_x20t9vh", "template_yla91y2", params);
-          console.log(`✅ Email sent to ${giver.name}`);
-        } catch (e) {
-          console.error(`❌ Error sending email to ${giver.name}:`, e);
-        }
-      }
-
-      alert("🎄 All Secret Santa emails have been sent successfully!");
+      alert("🎅 Emails sent successfully!");
     });
   </script>
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </body>
 </html>
