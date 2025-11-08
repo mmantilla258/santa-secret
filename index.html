@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎅 Secret Santa 2025 🎁</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
     body {
       margin: 0;
       padding: 0;
+      font-family: 'Poppins', sans-serif;
       background: url('family.jpeg') no-repeat center center fixed;
       background-size: cover;
       color: white;
@@ -20,52 +16,32 @@
     }
 
     .overlay {
-      background-color: rgba(0, 0, 0, 0.55);
+      background-color: rgba(0, 0, 0, 0.6);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       padding: 20px;
-      position: relative;
-    }
-
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-
-    p {
-      margin-top: 0;
-      font-size: 1.1em;
     }
 
     form {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.15);
       padding: 25px;
       border-radius: 15px;
-      backdrop-filter: blur(5px);
-      width: 100%;
+      backdrop-filter: blur(6px);
       max-width: 350px;
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: 90%;
     }
 
     input, textarea {
       width: 90%;
-      padding: 10px;
       margin: 8px 0;
       border: none;
       border-radius: 8px;
+      padding: 10px;
       font-size: 1em;
       text-align: center;
-    }
-
-    textarea {
-      resize: none;
-      height: 80px;
     }
 
     button {
@@ -75,8 +51,6 @@
       padding: 10px 20px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 1em;
-      margin-top: 10px;
       transition: background 0.3s;
     }
 
@@ -84,15 +58,42 @@
       background-color: #ff4d4d;
     }
 
+    #status {
+      color: #8ef08e;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
     #participantes {
-      margin-top: 20px;
+      margin-top: 15px;
       font-size: 1.1em;
     }
 
-    #status {
-      color: #8ef08e;
-      font-weight: bold;
-      margin-top: 10px;
+    .admin-btn {
+      display: none;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    #resetBtn {
+      background-color: #0077b6;
+    }
+
+    #resetBtn:hover {
+      background-color: #00b4d8;
+    }
+
+    #sendManualBtn {
+      background-color: #ffd166;
+      color: black;
+    }
+
+    #sendManualBtn:hover {
+      background-color: #ffca3a;
     }
   </style>
 </head>
@@ -111,14 +112,24 @@
 
     <p id="status"></p>
     <div id="participantes"></div>
+
+    <button id="resetBtn" class="admin-btn">🔁 Reset system</button>
+    <button id="sendManualBtn" class="admin-btn">📨 Send emails manually</button>
   </div>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function() {
+      emailjs.init("SGuCPgvO1PEEQ3zTz");
+    })();
+  </script>
 
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // --- Configuración Firebase ---
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
@@ -136,25 +147,41 @@
     const form = document.getElementById("form");
     const statusText = document.getElementById("status");
     const participantesDiv = document.getElementById("participantes");
+    const resetBtn = document.getElementById("resetBtn");
+    const sendManualBtn = document.getElementById("sendManualBtn");
+    const nombreInput = document.getElementById("nombre");
 
     let participantes = {};
 
-    // --- Mostrar cantidad de participantes ---
+    // Actualizar lista en pantalla
     function actualizarLista(data) {
       const count = Object.keys(data).length;
-      participantesDiv.innerHTML = `🎄 <b>${count} participants registered!</b>`;
+      const names = Object.values(data).map(p => p.nombre).join(", ");
+      participantesDiv.innerHTML = `🎄 <b>${count} participants registered:</b><br>${names}`;
     }
 
-    // --- Escuchar cambios ---
+    // Escuchar base de datos
     onValue(participantesRef, (snapshot) => {
       participantes = snapshot.val() || {};
       actualizarLista(participantes);
+
       if (Object.keys(participantes).length === 11) {
         realizarSorteoYEnviar();
       }
     });
 
-    // --- Enviar formulario ---
+    // Detectar modo admin
+    nombreInput.addEventListener("input", () => {
+      if (nombreInput.value.trim().toLowerCase() === "famamv") {
+        resetBtn.style.display = "inline-block";
+        sendManualBtn.style.display = "inline-block";
+      } else {
+        resetBtn.style.display = "none";
+        sendManualBtn.style.display = "none";
+      }
+    });
+
+    // Enviar formulario
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const nombre = form.nombre.value.trim();
@@ -168,50 +195,66 @@
       });
     });
 
-    // --- Sorteo aleatorio sin repetidos ---
+    // Botón: Reiniciar sistema
+    resetBtn.addEventListener("click", async () => {
+      if (confirm("⚠️ Are you sure you want to reset everything?")) {
+        await remove(participantesRef);
+        alert("🔥 System successfully reset.");
+        location.reload();
+      }
+    });
+
+    // Botón: Enviar correos manualmente
+    sendManualBtn.addEventListener("click", () => {
+      if (Object.keys(participantes).length < 2) {
+        alert("Need at least 2 participants to send emails.");
+        return;
+      }
+      if (confirm("📨 Send emails manually now?")) {
+        realizarSorteoYEnviar();
+      }
+    });
+
+    // --- Sorteo sin repetidos ---
     function mezclarYEmparejar(lista) {
       const nombres = lista.map(p => p.nombre);
       const receptores = [...nombres];
-      let mezclado = false;
+      let valido = false;
 
-      while (!mezclado) {
+      while (!valido) {
         for (let i = receptores.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [receptores[i], receptores[j]] = [receptores[j], receptores[i]];
         }
-        mezclado = !receptores.some((r, i) => r === nombres[i]);
+        valido = !receptores.some((r, i) => r === nombres[i]);
       }
 
       return nombres.map((dador, i) => ({
         dador,
+        correo: lista[i].correo,
         receptor: receptores[i],
-        correo: lista[i].correo
+        regalo: lista.find(p => p.nombre === receptores[i]).regalo
       }));
     }
 
-    // --- Enviar correos con EmailJS ---
+    // --- Enviar correos ---
     function realizarSorteoYEnviar() {
       const lista = Object.values(participantes);
       const parejas = mezclarYEmparejar(lista);
 
-      for (const par of parejas) {
+      parejas.forEach(par => {
         emailjs.send("service_x20t9vh", "template_yla91y2", {
           to_name: par.dador,
           to_email: par.correo,
-          secret_friend: par.receptor
-        }, "SGuCPgvO1PEEQ3zTz")
-        .then(() => console.log("Correo enviado a", par.dador))
-        .catch(err => console.error("Error:", err));
-      }
-    }
-  </script>
+          secret_friend: par.receptor,
+          secret_gift: par.regalo
+        })
+        .then(() => console.log("✅ Correo enviado a", par.dador))
+        .catch(err => console.error("❌ Error al enviar correo:", err));
+      });
 
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    (function() {
-      emailjs.init("SGuCPgvO1PEEQ3zTz");
-    })();
+      alert("✅ All emails have been sent!");
+    }
   </script>
 </body>
 </html>
