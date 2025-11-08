@@ -24,7 +24,7 @@
       padding: 15px;
       display: inline-block;
     }
-    #adminBtn, #sendEmailsBtn {
+    #adminBtn {
       background: crimson;
       color: white;
       cursor: pointer;
@@ -55,7 +55,7 @@
   <script type="module">
     // --- Firebase config ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, push, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, push, get, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
@@ -93,17 +93,21 @@
       document.getElementById("gift").value = "";
     });
 
-    // --- Show participants ---
+    // --- Show participants (only names) ---
     onValue(participantsRef, (snapshot) => {
       const data = snapshot.val();
       const participantsDiv = document.getElementById("participants");
       const count = document.getElementById("count");
       participantsDiv.innerHTML = "";
       let total = 0;
-      for (let key in data) {
-        participantsDiv.innerHTML += `<p>${data[key].name}</p>`;
-        total++;
+
+      if (data) {
+        for (let key in data) {
+          participantsDiv.innerHTML += `<p>🎄 ${data[key].name}</p>`;
+          total++;
+        }
       }
+
       count.innerText = `Total registered: ${total}`;
     });
 
@@ -115,7 +119,7 @@
       }
     });
 
-    // --- Admin: send emails ---
+    // --- Admin: send emails manually ---
     document.getElementById("adminBtn").addEventListener("click", async () => {
       const snapshot = await get(participantsRef);
       if (!snapshot.exists()) {
@@ -129,20 +133,24 @@
         return;
       }
 
-      // --- Generate random pairs without repeats ---
-      const shuffled = [...data].sort(() => Math.random() - 0.5);
-      const pairs = [];
-      for (let i = 0; i < shuffled.length; i++) {
-        const giver = shuffled[i];
-        const receiver = shuffled[(i + 1) % shuffled.length];
-        pairs.push({ giver, receiver });
+      // --- Random pairing without self or duplicates ---
+      let shuffled = [...data];
+      let isValid = false;
+      while (!isValid) {
+        shuffled.sort(() => Math.random() - 0.5);
+        isValid = shuffled.every((p, i) => p.email !== data[i].email);
       }
+
+      const pairs = data.map((giver, i) => ({
+        giver,
+        receiver: shuffled[i]
+      }));
 
       for (let pair of pairs) {
         const params = {
           to_name: pair.giver.name,
           from_name: "Secret Santa Family 🎅",
-          message: `Hi ${pair.giver.name}! 🎁 You are the Secret Santa for ${pair.receiver.name}. 
+          message: `Hi ${pair.giver.name}! 🎁 You are the Secret Santa for ${pair.receiver.name}.
 Gift idea of your person: ${pair.receiver.gift}`,
           to_email: pair.giver.email
         };
