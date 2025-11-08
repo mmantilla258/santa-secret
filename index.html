@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Secret Santa Family</title>
+  <meta charset="UTF-8" />
+  <title>🎅 Secret Santa - Family Arango Mantilla Verkeyn 🎁</title>
   <style>
     body {
       background: url('family.jpeg') no-repeat center center fixed;
@@ -10,76 +10,106 @@
       font-family: Arial, sans-serif;
       text-align: center;
       color: white;
-      padding: 20px;
+      margin: 0;
+      padding: 30px;
     }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
     input, textarea, button {
-      padding: 10px;
       margin: 5px;
-      border-radius: 10px;
+      padding: 10px;
+      border-radius: 8px;
       border: none;
+      font-size: 1em;
     }
+
+    textarea {
+      resize: none;
+      width: 250px;
+      height: 60px;
+    }
+
     #participants {
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.5);
       border-radius: 10px;
-      padding: 15px;
       display: inline-block;
+      padding: 15px;
+      margin-top: 20px;
     }
+
     #adminBtn {
+      display: none;
       background: crimson;
       color: white;
-      cursor: pointer;
+      font-weight: bold;
       border: none;
-      padding: 10px 15px;
       border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #count {
       margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>🎅 Secret Santa - Family Arango Mantilla Verkeyn 🎁</h1>
-  <p>Enter your info below (name, email, and gift idea)</p>
+  <h1>🎅 Secret Santa 2025 🎁</h1>
+  <p>Enter your name, email and gift idea below</p>
 
   <div>
-    <input type="text" id="name" placeholder="Name / Nombre / Naam"><br>
-    <input type="email" id="email" placeholder="Email"><br>
+    <input id="name" type="text" placeholder="Name / Nombre / Naam" /><br>
+    <input id="email" type="email" placeholder="Email" /><br>
     <textarea id="gift" placeholder="Gift idea / Descripción del regalo"></textarea><br>
     <button id="submitBtn">Submit / Enviar / Versturen</button>
   </div>
 
-  <h2>Participants Registered</h2>
   <div id="participants"></div>
   <p id="count"></p>
 
-  <button id="adminBtn" style="display:none;">Forzar envío de correos</button>
+  <button id="adminBtn">🎅 Force Secret Santa Email Send</button>
 
   <script type="module">
-    // --- Firebase config ---
+    // --- Firebase ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
     import { getDatabase, ref, push, get, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/",
       projectId: "santa-secreto-d2f26",
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
-      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/"
+      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const participantsRef = ref(db, 'participants');
+    const participantsRef = ref(db, "participants");
 
-    // --- EmailJS config ---
+    // --- EmailJS ---
     import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
     emailjs.init("SGuCPgvO1PEEQ3zTz");
 
-    // --- Register participant ---
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const giftInput = document.getElementById("gift");
+    const participantsDiv = document.getElementById("participants");
+    const countP = document.getElementById("count");
+    const adminBtn = document.getElementById("adminBtn");
+
+    // --- Registrar participante ---
     document.getElementById("submitBtn").addEventListener("click", async () => {
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const gift = document.getElementById("gift").value.trim();
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const gift = giftInput.value.trim();
 
       if (!name || !email || !gift) {
         alert("Please fill all fields!");
@@ -88,16 +118,14 @@
 
       await push(participantsRef, { name, email, gift });
       alert("Registered successfully!");
-      document.getElementById("name").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("gift").value = "";
+      nameInput.value = "";
+      emailInput.value = "";
+      giftInput.value = "";
     });
 
-    // --- Show participants (only names) ---
+    // --- Mostrar nombres ---
     onValue(participantsRef, (snapshot) => {
       const data = snapshot.val();
-      const participantsDiv = document.getElementById("participants");
-      const count = document.getElementById("count");
       participantsDiv.innerHTML = "";
       let total = 0;
 
@@ -108,64 +136,59 @@
         }
       }
 
-      count.innerText = `Total registered: ${total}`;
+      countP.textContent = `Total registered: ${total}`;
     });
 
-    // --- Admin mode ---
-    const nameInput = document.getElementById("name");
+    // --- Modo admin (escribiendo famamv) ---
     nameInput.addEventListener("input", () => {
       if (nameInput.value.trim().toLowerCase() === "famamv") {
-        document.getElementById("adminBtn").style.display = "inline-block";
+        adminBtn.style.display = "inline-block";
       }
     });
 
-    // --- Admin: send emails manually ---
-    document.getElementById("adminBtn").addEventListener("click", async () => {
+    // --- Botón admin: enviar correos ---
+    adminBtn.addEventListener("click", async () => {
       const snapshot = await get(participantsRef);
       if (!snapshot.exists()) {
         alert("No participants found.");
         return;
       }
 
-      const data = Object.values(snapshot.val());
-      if (data.length < 2) {
-        alert("Need at least 2 participants to send.");
+      const participants = Object.values(snapshot.val());
+      if (participants.length < 2) {
+        alert("Need at least 2 participants to assign.");
         return;
       }
 
-      // --- Random pairing without self or duplicates ---
-      let shuffled = [...data];
-      let isValid = false;
-      while (!isValid) {
-        shuffled.sort(() => Math.random() - 0.5);
-        isValid = shuffled.every((p, i) => p.email !== data[i].email);
-      }
+      // Mezclar receptores evitando que alguien se saque a sí mismo
+      let receivers;
+      do {
+        receivers = [...participants].sort(() => Math.random() - 0.5);
+      } while (receivers.some((r, i) => r.email === participants[i].email));
 
-      const pairs = data.map((giver, i) => ({
-        giver,
-        receiver: shuffled[i]
-      }));
+      // Enviar correo a cada participante
+      for (let i = 0; i < participants.length; i++) {
+        const giver = participants[i];
+        const receiver = receivers[i];
 
-      for (let pair of pairs) {
         const params = {
-          to_name: pair.giver.name,
-          from_name: "Secret Santa Family 🎅",
-          message: `Hi ${pair.giver.name}! 🎁 You are the Secret Santa for ${pair.receiver.name}.
-Gift idea of your person: ${pair.receiver.gift}`,
-          to_email: pair.giver.email
+          to_name: giver.name,
+          from_name: "Secret Santa 🎅",
+          to_email: giver.email,
+          message: `Hi ${giver.name}! 🎁 You are the Secret Santa for ${receiver.name}.
+Gift idea they mentioned: ${receiver.gift}`
         };
 
         try {
           await emailjs.send("service_x20t9vh", "template_yla91y2", params);
-          console.log(`Email sent to ${pair.giver.name}`);
+          console.log(`✅ Email sent to ${giver.name}`);
         } catch (e) {
-          console.error("Error sending email:", e);
+          console.error(`❌ Error sending email to ${giver.name}:`, e);
         }
       }
 
-      alert("All Secret Santa emails have been sent successfully!");
+      alert("🎄 All Secret Santa emails have been sent successfully!");
     });
   </script>
 </body>
 </html>
-
