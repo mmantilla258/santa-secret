@@ -3,60 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Santa 2025 🎁</title>
+  <title>🎅 Secret Santa Family Arango-Mantilla-Verkeyn 🎁</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    body {
-      margin: 0; padding: 0;
-      background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover; color: white; text-align: center;
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
     }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('family.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      text-align: center;
+    }
+
     .overlay {
       background-color: rgba(0, 0, 0, 0.55);
       min-height: 100vh;
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       padding: 20px;
     }
-    h1 { font-size: 2.5em; margin-bottom: 10px; }
-    p { margin-top: 0; font-size: 1.1em; }
+
+    h1 {
+      font-size: 2.3em;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-top: 0;
+      font-size: 1.1em;
+    }
+
     form {
-      background: rgba(255,255,255,0.1);
-      padding: 25px; border-radius: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 25px;
+      border-radius: 15px;
       backdrop-filter: blur(5px);
-      width: 100%; max-width: 350px;
-      margin-top: 20px; display: flex;
-      flex-direction: column; align-items: center;
+      width: 100%;
+      max-width: 350px;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
     input, textarea {
-      width: 90%; padding: 10px; margin: 8px 0;
-      border: none; border-radius: 8px;
-      font-size: 1em; text-align: center;
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      text-align: center;
     }
-    textarea { resize: none; height: 80px; }
+
+    textarea {
+      resize: none;
+      height: 80px;
+    }
+
     button {
-      background-color: #e63946; color: white;
-      border: none; padding: 10px 20px;
-      border-radius: 8px; cursor: pointer;
-      font-size: 1em; margin-top: 10px;
+      background-color: #e63946;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-top: 10px;
       transition: background 0.3s;
     }
-    button:hover { background-color: #ff4d4d; }
-    #participantes { margin-top: 20px; font-size: 1.1em; }
-    #status { color: #8ef08e; font-weight: bold; margin-top: 10px; }
+
+    button:hover {
+      background-color: #ff4d4d;
+    }
+
+    #participantes {
+      margin-top: 20px;
+      font-size: 1em;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 10px;
+      width: 90%;
+      max-width: 400px;
+      backdrop-filter: blur(4px);
+    }
+
+    #status {
+      color: #8ef08e;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #adminDiv {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="overlay">
-    <h1>🎅 Secret Santa 2025 🎁</h1>
-    <p>Family Arango-Mantilla-Verkeyn</p>
-    <p>Enter your name / email / gift idea</p>
+    <h1>🎅 Secret Santa Family Arango-Mantilla-Verkeyn 🎁</h1>
+    <p>Enter your name / Ingresa tu nombre / Voer je naam in<br>
+    Enter your email / Ingresa tu correo / Voer je e-mail in<br>
+    Describe your gift / Describe tu regalo / Beschrijf je cadeau</p>
 
     <form id="form">
-      <input id="nombre" type="text" placeholder="Nombre / Name / Naam" required />
-      <input id="correo" type="email" placeholder="Correo / Email / E-mail" required />
-      <textarea id="regalo" placeholder="Regalo / Gift / Geschenk" required></textarea>
-      <button type="submit" id="sendBtn">Enviar / Send / Verzenden</button>
+      <input id="nombre" type="text" placeholder="Name / Nombre / Naam" required />
+      <input id="correo" type="email" placeholder="Email / Correo / E-mail" required />
+      <textarea id="regalo" placeholder="Gift description / Descripción del regalo / Beschrijving van het cadeau" required></textarea>
+      <button type="submit">Enviar / Send / Verzenden</button>
     </form>
 
     <p id="status"></p>
@@ -64,16 +124,13 @@
     <div id="adminDiv"></div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Firebase + EmailJS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import emailjs from "https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js";
 
-    // 🔹 Inicializar EmailJS
-    emailjs.init("SGuCPgvO1PEEQ3zTz");
-
-    // 🔹 Config Firebase
+    // 🔹 Configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
@@ -88,109 +145,118 @@
     const db = getDatabase(app);
     const participantesRef = ref(db, "participantes");
 
+    emailjs.init("SGuCPgvO1PEEQ3zTz");
+
     const form = document.getElementById("form");
     const participantesDiv = document.getElementById("participantes");
     const statusText = document.getElementById("status");
     const adminDiv = document.getElementById("adminDiv");
 
-    // 🔸 Mostrar lista de participantes
-    let dataCache = null;
-    function actualizarParticipantes() {
-      const data = dataCache;
-      const count = data ? Object.keys(data).length : 0;
-      const nombres = data ? Object.values(data).map(p => p.nombre).join("<br>") : "";
-      participantesDiv.innerHTML = `🎄 <b>${count}</b> participantes:<br>${nombres}`;
-    }
+    let dataCache = {};
 
+    // 🔹 Mostrar lista de participantes
     onValue(participantesRef, (snapshot) => {
-      dataCache = snapshot.val();
-      actualizarParticipantes();
+      dataCache = snapshot.val() || {};
+      const keys = Object.keys(dataCache);
+      let html = `<h3>🎄 Participantes (${keys.length}/11)</h3>`;
+      html += "<ul style='list-style:none;padding:0;'>";
+      keys.forEach(k => {
+        const p = dataCache[k];
+        html += `<li>⭐ ${p.nombre}</li>`;
+      });
+      html += "</ul>";
+      participantesDiv.innerHTML = html;
     });
 
-    // 🔸 Enviar formulario
+    // 🔹 Envío del formulario
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const nombre = form.nombre.value.trim();
       const correo = form.correo.value.trim();
       const regalo = form.regalo.value.trim();
 
+      if (!nombre || !correo || !regalo) return;
+
       push(participantesRef, { nombre, correo, regalo }).then(() => {
         form.reset();
         statusText.innerHTML = "✅ Registro exitoso!";
-        setTimeout(() => statusText.innerHTML = "", 3000);
+        setTimeout(() => (statusText.innerHTML = ""), 3000);
       });
 
       if (nombre.toLowerCase() === "famamv") mostrarBotonesAdmin();
     });
 
-    // 🔸 Mostrar botones admin
+    // 🔹 Detectar modo admin
+    const inputNombre = document.getElementById("nombre");
+    inputNombre.addEventListener("input", () => {
+      if (inputNombre.value.toLowerCase() === "famamv") mostrarBotonesAdmin();
+      else adminDiv.innerHTML = "";
+    });
+
+    // 🔹 Mostrar botones admin (reinicio + enviar correos)
     function mostrarBotonesAdmin() {
       adminDiv.innerHTML = `
         <div style="text-align:center; margin-top:15px;">
-          <button id="resetBtn" style="background-color:#ff4444;">🔁 Reiniciar sistema</button>
-          <button id="sendEmailsBtn" style="background-color:#2a9d8f; margin-left:10px;">📧 Enviar correos</button>
+          <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;margin:5px;">
+            🔁 Reiniciar sistema
+          </button>
+          <button id="sendEmailsBtn" style="background-color:#00b894;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;margin:5px;">
+            📩 Enviar correos
+          </button>
+          <p style="color:lime;font-weight:bold;">🛠️ Modo administrador activo</p>
         </div>
       `;
-      document.getElementById("resetBtn").addEventListener("click", resetearSistema);
-      document.getElementById("sendEmailsBtn").addEventListener("click", enviarCorreos);
-    }
 
-    // 🔸 Reiniciar sistema
-    function resetearSistema() {
-      if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema?")) {
-        remove(participantesRef).then(() => {
-          statusText.innerHTML = "✅ Sistema reiniciado.";
-          setTimeout(() => statusText.innerHTML = "", 4000);
-        });
-      }
-    }
-
-    // 🔸 Generar asignaciones sin repetidos ni autoasignaciones
-    function generarAsignaciones(participantes) {
-      let shuffled, valido = false;
-      while (!valido) {
-        shuffled = [...participantes].sort(() => Math.random() - 0.5);
-        valido = true;
-        for (let i = 0; i < participantes.length; i++) {
-          if (participantes[i].nombre === shuffled[i].nombre) {
-            valido = false;
-            break;
-          }
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.")) {
+          remove(participantesRef).then(() => {
+            statusText.innerHTML = "✅ Sistema reiniciado con éxito.";
+            setTimeout(() => (statusText.innerHTML = ""), 4000);
+          });
         }
-      }
-      return participantes.map((p, i) => ({
-        santa: p,
-        destinatario: shuffled[i]
-      }));
-    }
-
-    // 🔸 Enviar correos (solo admin)
-    function enviarCorreos() {
-      const data = dataCache;
-      if (!data) return alert("❌ No hay participantes registrados.");
-      const participantes = Object.values(data);
-      if (participantes.length < 2) return alert("❌ Se necesitan al menos 2 participantes.");
-
-      const asignaciones = generarAsignaciones(participantes);
-
-      asignaciones.forEach(par => {
-        emailjs.send("service_x20t9vh", "template_yla91y2", {
-          to_name: par.santa.nombre,
-          to_email: par.santa.correo,
-          message: `🎅 Hola ${par.santa.nombre}!\n\nTe tocó regalarle a: ${par.destinatario.nombre} 🎁\nDesea: ${par.destinatario.regalo}\n\n¡Feliz intercambio! 🎄`
-        }).then(() => {
-          console.log(`Correo enviado a ${par.santa.nombre}`);
-        }).catch(err => console.error("Error enviando correo:", err));
       });
 
-      alert("✅ Correos enviados exitosamente!");
+      document.getElementById("sendEmailsBtn").addEventListener("click", () => {
+        enviarCorreos();
+      });
     }
 
-    // 🔸 Detectar si escribes famamv
-    document.getElementById("nombre").addEventListener("input", (e) => {
-      if (e.target.value.toLowerCase() === "famamv") mostrarBotonesAdmin();
-      else adminDiv.innerHTML = "";
-    });
+    // 🔹 Enviar correos sin repetición
+    async function enviarCorreos() {
+      const participantes = Object.values(dataCache);
+      if (participantes.length !== 11) {
+        alert("Deben haber exactamente 11 participantes para enviar los correos.");
+        return;
+      }
+
+      let receptores = [...participantes];
+      let valido = false;
+
+      // Evitar que alguien se tenga a sí mismo
+      while (!valido) {
+        receptores = receptores.sort(() => Math.random() - 0.5);
+        valido = participantes.every((p, i) => p.nombre !== receptores[i].nombre);
+      }
+
+      for (let i = 0; i < participantes.length; i++) {
+        const de = participantes[i];
+        const para = receptores[i];
+        const message = `🎁 ${para.nombre}\n\nSu deseo fue:\n${para.regalo}`;
+
+        try {
+          await emailjs.send("service_x20t9vh", "template_yla91y2", {
+            to_email: de.correo,
+            to_name: de.nombre,
+            message: message
+          });
+          console.log(`Correo enviado a ${de.nombre}`);
+        } catch (error) {
+          console.error(`Error enviando a ${de.nombre}:`, error);
+        }
+      }
+
+      alert("✅ Todos los correos fueron enviados exitosamente.");
+    }
   </script>
 </body>
 </html>
