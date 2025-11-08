@@ -1,42 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Santa Family AMV</title>
+  <title>🎅 Secret Santa 2025 — Familia Arango-Mantilla-Verkeyn 🎁</title>
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-image: url('family.jpeg');
+      margin: 0;
+      padding: 0;
+      background: url('family.jpeg') no-repeat center center fixed;
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      color: white;
       text-align: center;
-      color: #fff;
-      text-shadow: 1px 1px 3px #000;
-      padding: 40px;
+    }
+
+    .overlay {
+      background-color: rgba(0, 0, 0, 0.55);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
     }
 
     h1 {
-      font-size: 2em;
+      font-size: 2.3em;
       margin-bottom: 10px;
     }
 
-    .form-container {
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 20px;
+    p {
+      margin-top: 0;
+      font-size: 1.1em;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 25px;
       border-radius: 15px;
-      display: inline-block;
+      backdrop-filter: blur(5px);
+      width: 100%;
+      max-width: 350px;
       margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     input, textarea {
       width: 90%;
       padding: 10px;
-      margin: 10px 0;
+      margin: 8px 0;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       font-size: 1em;
+      text-align: center;
+    }
+
+    textarea {
+      resize: none;
+      height: 80px;
     }
 
     button {
@@ -44,55 +73,58 @@
       color: white;
       border: none;
       padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 1em;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 1em;
+      margin-top: 10px;
+      transition: background 0.3s;
     }
 
     button:hover {
-      background-color: #d62828;
+      background-color: #ff4d4d;
     }
 
-    #participantsList {
+    #participantes {
       margin-top: 20px;
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 10px;
-      border-radius: 10px;
-      display: inline-block;
+      font-size: 1.1em;
     }
 
-    #resetButton {
-      display: none;
-      background-color: #1d3557;
-      margin-top: 15px;
+    #status {
+      color: #8ef08e;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #adminDiv {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>🎅 Secret Santa 🎁</h1>
-  <h2>Family Arango-Mantilla-Verkeyn</h2>
+  <div class="overlay">
+    <h1>🎅 Secret Santa 2025 🎁<br>Family Arango-Mantilla-Verkeyn</h1>
+    <p>Enter your name / Ingresa tu nombre / Voer je naam in</p>
 
-  <div class="form-container">
-    <h3>Enter your info / Ingresa tus datos / Vul je gegevens in</h3>
-    <input type="text" id="name" placeholder="Name / Nombre / Naam" required />
-    <input type="email" id="email" placeholder="Email / Correo / E-mail" required />
-    <textarea id="gift" placeholder="Gift description / Descripción del regalo / Beschrijving van het cadeau" rows="4"></textarea>
-    <button id="submitBtn">Send / Enviar / Verzenden</button>
+    <form id="form">
+      <input id="nombre" type="text" placeholder="Name / Nombre / Naam" required />
+      <input id="correo" type="email" placeholder="Email / Correo / E-mail" required />
+      <textarea id="regalo" placeholder="Gift description / Descripción del regalo / Beschrijving van het cadeau" required></textarea>
+      <button type="submit">Send / Enviar / Verzenden</button>
+    </form>
+
+    <p id="status"></p>
+    <div id="participantes"></div>
+    <div id="adminDiv"></div>
   </div>
 
-  <div id="participantsList">
-    <h3>🎁 Registered Participants / Participantes registrados / Geregistreerde deelnemers:</h3>
-    <p id="participantCount">0 / 11</p>
-    <ul id="namesList"></ul>
-  </div>
-
-  <button id="resetButton">🔄 Reiniciar todo / Reset all / Alles resetten</button>
-
-  <!-- Firebase -->
+  <!-- Firebase + EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    // --- Importar Firebase ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+    // --- Configuración Firebase ---
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
@@ -100,70 +132,105 @@
       storageBucket: "santa-secreto-d2f26.firebasestorage.app",
       messagingSenderId: "447417641195",
       appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
-      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com/"
+      databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const participantsRef = ref(db, "participants");
+    const participantesRef = ref(db, "participantes");
 
-    const submitBtn = document.getElementById("submitBtn");
-    const nameInput = document.getElementById("name");
-    const emailInput = document.getElementById("email");
-    const giftInput = document.getElementById("gift");
-    const participantCount = document.getElementById("participantCount");
-    const namesList = document.getElementById("namesList");
-    const resetButton = document.getElementById("resetButton");
+    // --- Inicializar EmailJS ---
+    emailjs.init("SGuCPgvO1PEEQ3zTz"); // Tu Public Key
 
-    // Enviar datos
-    submitBtn.addEventListener("click", () => {
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim();
-      const gift = giftInput.value.trim();
+    // --- DOM ---
+    const form = document.getElementById("form");
+    const statusText = document.getElementById("status");
+    const participantesDiv = document.getElementById("participantes");
+    const adminDiv = document.getElementById("adminDiv");
 
-      if (name && email && gift) {
-        push(participantsRef, { name, email, gift });
-        nameInput.value = "";
-        emailInput.value = "";
-        giftInput.value = "";
+    // --- Enviar formulario ---
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nombre = form.nombre.value.trim();
+      const correo = form.correo.value.trim();
+      const regalo = form.regalo.value.trim();
+
+      if (!nombre || !correo || !regalo) return;
+
+      push(participantesRef, { nombre, correo, regalo }).then(() => {
+        form.reset();
+        statusText.innerHTML = "✅ Registered successfully!";
+        setTimeout(() => statusText.innerHTML = "", 3000);
+      });
+
+      if (nombre.toLowerCase() === "famamv") {
+        mostrarBotonReinicio();
       }
     });
 
-    // Mostrar participantes
-    onValue(participantsRef, (snapshot) => {
+    // --- Mostrar cantidad de participantes ---
+    onValue(participantesRef, (snapshot) => {
       const data = snapshot.val();
-      namesList.innerHTML = "";
-      if (data) {
-        const entries = Object.values(data);
-        participantCount.textContent = `${entries.length} / 11`;
-        entries.forEach((p) => {
-          const li = document.createElement("li");
-          li.textContent = p.name;
-          namesList.appendChild(li);
-        });
-      } else {
-        participantCount.textContent = "0 / 11";
+      const count = data ? Object.keys(data).length : 0;
+      participantesDiv.innerHTML = `🎄 <b>Participants:</b> ${count} / 11`;
+
+      if (count === 11) {
+        enviarCorreos(data);
       }
     });
 
-    // Mostrar botón admin si escribe famamv
-    nameInput.addEventListener("input", () => {
-      if (nameInput.value.trim().toLowerCase() === "famamv") {
-        resetButton.style.display = "inline-block";
+    // --- Función para enviar los correos ---
+    function enviarCorreos(data) {
+      const participantes = Object.values(data);
+      const total = participantes.length;
+
+      // Mezclar aleatoriamente
+      const mezclados = [...participantes].sort(() => Math.random() - 0.5);
+
+      for (let i = 0; i < total; i++) {
+        const actual = mezclados[i];
+        const asignado = mezclados[(i + 1) % total];
+
+        const templateParams = {
+          to_name: actual.nombre,
+          nombreAsignado: asignado.nombre,
+          descripcionRegalo: asignado.regalo
+        };
+
+        emailjs.send("service_x20t9vh", "template_yla91y2", templateParams)
+          .then(() => console.log(`📩 Correo enviado a ${actual.correo}`))
+          .catch((err) => console.error("❌ Error enviando correo:", err));
+      }
+    }
+
+    // --- Detección de admin ---
+    const inputNombre = document.getElementById("nombre");
+    inputNombre.addEventListener("input", () => {
+      if (inputNombre.value.toLowerCase() === "famamv") {
+        mostrarBotonReinicio();
       } else {
-        resetButton.style.display = "none";
+        adminDiv.innerHTML = "";
       }
     });
 
-    // Reiniciar base de datos
-    resetButton.addEventListener("click", () => {
-      if (confirm("¿Seguro que quieres reiniciar todo?")) {
-        remove(participantsRef);
-        alert("Datos reiniciados correctamente.");
-      }
-    });
+    // --- Botón de reinicio ---
+    function mostrarBotonReinicio() {
+      adminDiv.innerHTML = `
+        <div style="text-align:center; margin-top:15px;">
+          <button id="resetBtn" style="background-color:#ff4444;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:16px;cursor:pointer;">
+            🔁 Reiniciar sistema
+          </button>
+        </div>
+      `;
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema?")) {
+          remove(participantesRef).then(() => {
+            statusText.innerHTML = "✅ Sistema reiniciado con éxito.";
+            setTimeout(() => statusText.innerHTML = "", 5000);
+          });
+        }
+      });
+    }
   </script>
 </body>
 </html>
-
-
