@@ -154,17 +154,24 @@
 
     let dataCache = {};
 
-    // 🔹 Mostrar lista de participantes
+    // 🔹 Mostrar lista de participantes en tiempo real
     onValue(participantesRef, (snapshot) => {
-      dataCache = snapshot.val() || {};
+      const data = snapshot.val();
+      dataCache = data || {};
+
       const keys = Object.keys(dataCache);
-      let html = `<h3>🎄 Participantes (${keys.length}/11)</h3>`;
-      html += "<ul style='list-style:none;padding:0;'>";
+      if (keys.length === 0) {
+        participantesDiv.innerHTML = "<h3>No hay participantes aún 😅</h3>";
+        return;
+      }
+
+      let html = `<h3>🎄 Participantes (${keys.length}/11)</h3><ul style='list-style:none;padding:0;'>`;
       keys.forEach(k => {
         const p = dataCache[k];
         html += `<li>⭐ ${p.nombre}</li>`;
       });
       html += "</ul>";
+
       participantesDiv.innerHTML = html;
     });
 
@@ -211,6 +218,7 @@
         if (confirm("⚠️ ¿Seguro que quieres reiniciar todo el sistema? Esta acción no se puede deshacer.")) {
           remove(participantesRef).then(() => {
             statusText.innerHTML = "✅ Sistema reiniciado con éxito.";
+            participantesDiv.innerHTML = "";
             setTimeout(() => (statusText.innerHTML = ""), 4000);
           });
         }
