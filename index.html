@@ -135,20 +135,20 @@
 
     let participantes = {};
 
-    // Mostrar cantidad de participantes (sin regalos)
+    // Mostrar cantidad de participantes (solo nombres)
     function actualizarLista(data) {
       const count = Object.keys(data).length;
       const names = Object.values(data).map(p => p.nombre).join(", ");
       participantesDiv.innerHTML = `🎄 <b>${count} participants registered:</b><br>${names}`;
     }
 
-    // Escuchar cambios
+    // Escuchar cambios en Firebase
     onValue(participantesRef, (snapshot) => {
       participantes = snapshot.val() || {};
       actualizarLista(participantes);
     });
 
-    // Detección de modo admin
+    // Detectar modo admin (famamv)
     const nombreInput = document.getElementById("nombre");
     nombreInput.addEventListener("input", () => {
       if (nombreInput.value.trim().toLowerCase() === "famamv") {
@@ -160,7 +160,7 @@
       }
     });
 
-    // Enviar formulario
+    // Enviar formulario (guardar en Firebase)
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const nombre = form.nombre.value.trim();
@@ -205,13 +205,16 @@
       }));
     }
 
-    // Enviar correos solo cuando el admin presiona el botón
+    // Enviar correos (solo admin, al presionar el botón)
     sendEmailsBtn.addEventListener("click", () => {
       const lista = Object.values(participantes);
-      if (lista.length < 11) {
-        alert("Aún no hay 11 participantes registrados.");
+
+      if (lista.length !== 11) {
+        alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
         return;
       }
+
+      if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
 
       const parejas = mezclarYEmparejar(lista);
 
@@ -226,7 +229,7 @@
         .catch(err => console.error("❌ Error:", err));
       });
 
-      alert("📨 Correos enviados exitosamente.");
+      alert("✅ Correos enviados exitosamente.");
     });
   </script>
 </body>
