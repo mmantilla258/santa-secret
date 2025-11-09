@@ -69,13 +69,13 @@
       font-size: 1.1em;
     }
 
-    #resetBtn {
+    #resetBtn, #sendEmailsBtn {
       display: none;
       margin-top: 20px;
       background-color: #0077b6;
     }
 
-    #resetBtn:hover {
+    #resetBtn:hover, #sendEmailsBtn:hover {
       background-color: #00b4d8;
     }
   </style>
@@ -95,6 +95,8 @@
 
     <p id="status"></p>
     <div id="participantes"></div>
+
+    <button id="sendEmailsBtn">📨 Enviar correos</button>
     <button id="resetBtn">🔁 Reiniciar sistema</button>
   </div>
 
@@ -129,10 +131,11 @@
     const statusText = document.getElementById("status");
     const participantesDiv = document.getElementById("participantes");
     const resetBtn = document.getElementById("resetBtn");
+    const sendEmailsBtn = document.getElementById("sendEmailsBtn");
 
     let participantes = {};
 
-    // Mostrar cantidad de participantes
+    // Mostrar cantidad de participantes (sin regalos)
     function actualizarLista(data) {
       const count = Object.keys(data).length;
       const names = Object.values(data).map(p => p.nombre).join(", ");
@@ -143,19 +146,17 @@
     onValue(participantesRef, (snapshot) => {
       participantes = snapshot.val() || {};
       actualizarLista(participantes);
+    });
 
-      // activar modo admin si nombre == famamv
-      const nombreInput = document.getElementById("nombre");
-      nombreInput.addEventListener("input", () => {
-        if (nombreInput.value.trim().toLowerCase() === "famamv") {
-          resetBtn.style.display = "block";
-        } else {
-          resetBtn.style.display = "none";
-        }
-      });
-
-      if (Object.keys(participantes).length === 11) {
-        realizarSorteoYEnviar();
+    // Detección de modo admin
+    const nombreInput = document.getElementById("nombre");
+    nombreInput.addEventListener("input", () => {
+      if (nombreInput.value.trim().toLowerCase() === "famamv") {
+        resetBtn.style.display = "block";
+        sendEmailsBtn.style.display = "block";
+      } else {
+        resetBtn.style.display = "none";
+        sendEmailsBtn.style.display = "none";
       }
     });
 
@@ -204,9 +205,14 @@
       }));
     }
 
-    // Enviar correos automáticos con EmailJS
-    function realizarSorteoYEnviar() {
+    // Enviar correos solo cuando el admin presiona el botón
+    sendEmailsBtn.addEventListener("click", () => {
       const lista = Object.values(participantes);
+      if (lista.length < 11) {
+        alert("Aún no hay 11 participantes registrados.");
+        return;
+      }
+
       const parejas = mezclarYEmparejar(lista);
 
       parejas.forEach(par => {
@@ -219,7 +225,9 @@
         .then(() => console.log("✅ Correo enviado a", par.dador))
         .catch(err => console.error("❌ Error:", err));
       });
-    }
+
+      alert("📨 Correos enviados exitosamente.");
+    });
   </script>
 </body>
 </html>
