@@ -205,43 +205,43 @@
       }));
     }
 
-    // Enviar correos (solo admin, al presionar el botón)
-    // Enviar correos (solo admin, al presionar el botón)
-sendEmailsBtn.addEventListener("click", async () => {
-  const lista = Object.values(participantes);
+    // ✅ Enviar correos solo con botón del admin
+    sendEmailsBtn.addEventListener("click", async () => {
+      const lista = Object.values(participantes);
 
-  if (lista.length !== 11) {
-    alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
-    return;
-  }
+      if (lista.length !== 11) {
+        alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
+        return;
+      }
 
-  if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
+      if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
 
-  const parejas = mezclarYEmparejar(lista);
+      const parejas = mezclarYEmparejar(lista);
+      let enviados = 0;
 
-  let enviados = 0;
+      for (const [index, par] of parejas.entries()) {
+        try {
+          console.log(`📨 Enviando correo ${index + 1}/11 a ${par.dador} (${par.correo})...`);
 
-  for (const par of parejas) {
-    try {
-      await emailjs.send("service_x20t9vh", "template_yla91y2", {
-        to_name: par.dador,
-        to_email: par.correo,
-        secret_friend: par.receptor,
-        secret_gift: par.regalo
-      });
-      enviados++;
-      console.log(`✅ ${enviados}/11 enviado a ${par.dador}`);
-      await new Promise(r => setTimeout(r, 1000)); // Espera 1 seg entre correos
-    } catch (err) {
-      console.error("❌ Error al enviar a", par.dador, err);
-    }
-  }
+          await emailjs.send("service_x20t9vh", "template_yla91y2", {
+            to_name: par.dador,
+            to_email: par.correo,
+            secret_friend: par.receptor,
+            secret_gift: par.regalo
+          });
 
-  alert(`✅ Correos enviados exitosamente (${enviados}/11 completados).`);
-});
+          enviados++;
+          console.log(`✅ ${enviados}/11 enviado correctamente a ${par.dador}`);
 
+          // Espera 2 segundos entre correos para evitar límite
+          await new Promise(res => setTimeout(res, 2000)); 
+        } catch (err) {
+          console.error(`❌ Error al enviar correo a ${par.dador}:`, err);
+        }
+      }
+
+      alert(`✅ Correos enviados exitosamente (${enviados}/11 completados).`);
     });
   </script>
 </body>
 </html>
-
