@@ -206,31 +206,42 @@
     }
 
     // Enviar correos (solo admin, al presionar el botón)
-    sendEmailsBtn.addEventListener("click", () => {
-      const lista = Object.values(participantes);
+    // Enviar correos (solo admin, al presionar el botón)
+sendEmailsBtn.addEventListener("click", async () => {
+  const lista = Object.values(participantes);
 
-      if (lista.length !== 11) {
-        alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
-        return;
-      }
+  if (lista.length !== 11) {
+    alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
+    return;
+  }
 
-      if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
+  if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
 
-      const parejas = mezclarYEmparejar(lista);
+  const parejas = mezclarYEmparejar(lista);
 
-      parejas.forEach(par => {
-        emailjs.send("service_x20t9vh", "template_yla91y2", {
-          to_name: par.dador,
-          to_email: par.correo,
-          secret_friend: par.receptor,
-          secret_gift: par.regalo
-        })
-        .then(() => console.log("✅ Correo enviado a", par.dador))
-        .catch(err => console.error("❌ Error:", err));
+  let enviados = 0;
+
+  for (const par of parejas) {
+    try {
+      await emailjs.send("service_x20t9vh", "template_yla91y2", {
+        to_name: par.dador,
+        to_email: par.correo,
+        secret_friend: par.receptor,
+        secret_gift: par.regalo
       });
+      enviados++;
+      console.log(`✅ ${enviados}/11 enviado a ${par.dador}`);
+      await new Promise(r => setTimeout(r, 1000)); // Espera 1 seg entre correos
+    } catch (err) {
+      console.error("❌ Error al enviar a", par.dador, err);
+    }
+  }
 
-      alert("✅ Correos enviados exitosamente.");
+  alert(`✅ Correos enviados exitosamente (${enviados}/11 completados).`);
+});
+
     });
   </script>
 </body>
 </html>
+
