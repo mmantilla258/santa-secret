@@ -1,246 +1,251 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🎅 Secret Santa 2025 🎁</title>
+  <title>🎅 Secret Santa 2026 🎁</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-      background: url('family.jpeg') no-repeat center center fixed;
-      background-size: cover;
-      color: white;
-      text-align: center;
-    }
-
-    .overlay {
-      background-color: rgba(0, 0, 0, 0.6);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    form {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 25px;
-      border-radius: 15px;
-      backdrop-filter: blur(6px);
-      max-width: 350px;
-      width: 90%;
-    }
-
-    input, textarea {
-      width: 90%;
-      margin: 8px 0;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 1em;
-      text-align: center;
-    }
-
-    button {
-      background-color: #e63946;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #ff4d4d;
-    }
-
-    #status {
-      color: #8ef08e;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    #participantes {
-      margin-top: 15px;
-      font-size: 1.1em;
-    }
-
-    #resetBtn, #sendEmailsBtn {
-      display: none;
-      margin-top: 20px;
-      background-color: #0077b6;
-    }
-
-    #resetBtn:hover, #sendEmailsBtn:hover {
-      background-color: #00b4d8;
-    }
+    body { margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: url('family.jpeg') no-repeat center center fixed; background-size: cover; color: white; text-align: center; }
+    .overlay { background-color: rgba(0, 0, 0, 0.6); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    .card { background: rgba(255, 255, 255, 0.15); padding: 25px; border-radius: 15px; backdrop-filter: blur(6px); max-width: 350px; width: 90%; margin-bottom: 15px; }
+    input, select, textarea { width: 90%; margin: 8px 0; border: none; border-radius: 8px; padding: 10px; font-size: 1em; text-align: center; }
+    button { background-color: #25D366; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 5px; width: 95%;}
+    button:hover { background-color: #128C7E; }
+    .hidden { display: none; }
+    #status { color: #8ef08e; font-weight: bold; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="overlay">
-    <h1>🎅 Secret Santa 2025 🎁</h1>
-    <p>Family Arango-Mantilla-Verkeyn</p>
-    <p>Enter your name, email and what gift you’d like to receive 🎁</p>
+    <h1>🎅 Secret Santa 2026 🎁</h1>
+    
+    <!-- PASO 1: Identificación -->
+    <div id="step1" class="card">
+      <p>Selecciona tu nombre para recibir el PIN por WhatsApp</p>
+      <select id="nombreSelect">
+        <option value="">-- Elige tu nombre --</option>
+      </select>
+      <button id="btnSolicitarPin">📱 Solicitar PIN</button>
+    </div>
 
-    <form id="form">
-      <input id="nombre" type="text" placeholder="Name / Nombre / Naam" required />
-      <input id="correo" type="email" placeholder="Email / Correo / E-mail" required />
-      <textarea id="regalo" placeholder="Gift / Regalo / Geschenk" required></textarea>
-      <button type="submit">Send / Enviar / Verzenden</button>
-    </form>
+    <!-- PASO 2: Validación -->
+    <div id="step2" class="card hidden">
+      <p>Ingresa el PIN de 4 dígitos que llegó a tu WhatsApp</p>
+      <input type="text" id="pinInput" placeholder="PIN secreto" maxlength="4" />
+      <button id="btnValidarPin">🔓 Validar</button>
+    </div>
 
-    <p id="status"></p>
-    <div id="participantes"></div>
+    <!-- PASO 3: Ingreso de Regalo -->
+    <div id="step3" class="card hidden">
+      <p>¡Identidad confirmada! ¿Qué quieres de regalo?</p>
+      <textarea id="regaloInput" placeholder="Ej: Un libro, ropa talla M..." required></textarea>
+      <button id="btnGuardarRegalo">🎁 Guardar mi opción</button>
+    </div>
 
-    <button id="sendEmailsBtn">📨 Enviar correos</button>
-    <button id="resetBtn">🔁 Reiniciar sistema</button>
+    <p id="status">Cargando estado...</p>
+
+    <!-- Botón Admin oculto -->
+    <input type="text" id="adminCode" placeholder="Código admin" style="width: 150px; margin-top: 30px; opacity: 0.2; background: transparent; color: white;" />
+    <button id="btnSortear" class="hidden" style="background-color: #e63946;">🎲 Sortear y Enviar WhatsApps</button>
+    <button id="btnReset" class="hidden" style="background-color: #0077b6;">🔁 Reiniciar</button>
   </div>
-
-  <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    (function() {
-      emailjs.init("SGuCPgvO1PEEQ3zTz");
-    })();
-  </script>
 
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // ==========================================
+    // 1. ZONA DE CONFIGURACIÓN DE DATOS (Edita solo esto)
+    // ==========================================
+    // El índice 0 eres tú.
+    // Los índices del 0 al 4 son los que NO te pueden sacar.
+    const nombresReales = [
+      "Alejandro",   // Posición 0 (Tú)
+      "Miguel Angel",     // Posición 1 (Restringido)
+      "Luddy",    // Posición 2 (Restringido)
+      "Ismael",     // Posición 3 (Restringido)
+      "Blanca",   // Posición 4 (Restringido)
+      "Angelica",      // Posición 5 (Libre)
+      "Estefania",    // Posición 6 (Libre)
+      "Bart"      // Posición 7 (Libre)
+    ];
+
+    const telefonosReales = [
+      "+573235058575", // Teléfono de Alejandro
+      "+573235058575", // Teléfono de Miguel Angel
+      "+573235058575", // Teléfono de Luddy
+      "+573235058575", // Teléfono de Ismael
+      "+573235058575", // Teléfono de Blanca
+      "+573235058575", // Teléfono de Angelica
+      "+573235058575", // Teléfono de Estefania
+      "+573235058575"  // Teléfono de Bart
+    ];
+    // ==========================================
+    // FIN ZONA DE CONFIGURACIÓN
+    // ==========================================
 
     const firebaseConfig = {
       apiKey: "AIzaSyBxpOQHSZdLr4kdPvhH3bBRKw6p1ywPYIE",
       authDomain: "santa-secreto-d2f26.firebaseapp.com",
       projectId: "santa-secreto-d2f26",
-      storageBucket: "santa-secreto-d2f26.firebasestorage.app",
-      messagingSenderId: "447417641195",
-      appId: "1:447417641195:web:f38a2adaca6d5ea91cb6ae",
       databaseURL: "https://santa-secreto-d2f26-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const participantesRef = ref(db, "participantes");
 
-    const form = document.getElementById("form");
-    const statusText = document.getElementById("status");
-    const participantesDiv = document.getElementById("participantes");
-    const resetBtn = document.getElementById("resetBtn");
-    const sendEmailsBtn = document.getElementById("sendEmailsBtn");
-
-    let participantes = {};
-
-    // Mostrar cantidad de participantes (solo nombres)
-    function actualizarLista(data) {
-      const count = Object.keys(data).length;
-      const names = Object.values(data).map(p => p.nombre).join(", ");
-      participantesDiv.innerHTML = `🎄 <b>${count} participants registered:</b><br>${names}`;
-    }
-
-    // Escuchar cambios en Firebase
-    onValue(participantesRef, (snapshot) => {
-      participantes = snapshot.val() || {};
-      actualizarLista(participantes);
+    // Asignaciones automáticas basadas en la lista
+    const usuarioPrincipal = nombresReales[0];
+    const restringidos = [nombresReales[0], nombresReales[1], nombresReales[2], nombresReales[3], nombresReales[4]];
+    const participantes = nombresReales;
+    
+    const directorio = {};
+    nombresReales.forEach((nombre, index) => {
+      directorio[nombre] = telefonosReales[index];
     });
 
-    // Detectar modo admin (famamv)
-    const nombreInput = document.getElementById("nombre");
-    nombreInput.addEventListener("input", () => {
-      if (nombreInput.value.trim().toLowerCase() === "famamv") {
-        resetBtn.style.display = "block";
-        sendEmailsBtn.style.display = "block";
+    const nombreSelect = document.getElementById("nombreSelect");
+    const statusText = document.getElementById("status");
+
+    participantes.forEach(nombre => {
+      let option = document.createElement("option");
+      option.value = nombre;
+      option.textContent = nombre;
+      nombreSelect.appendChild(option);
+    });
+
+    async function enviarWhatsApp(telefono, mensaje) {
+      // AQUÍ VA LA CONEXIÓN A TU API DE WHATSAPP
+      console.log(`Enviando a ${telefono}: ${mensaje}`);
+    }
+
+    onValue(ref(db, "registros"), async (snapshot) => {
+      if (snapshot.exists()) {
+        const registrados = Object.keys(snapshot.val()).length;
+        const total = participantes.length;
+        statusText.innerText = `Registrados: ${registrados} de ${total}`;
+        
+        if (registrados === total && !window.notificadoAdmin) {
+           window.notificadoAdmin = true;
+           await enviarWhatsApp(directorio[usuarioPrincipal], "⚠️ ¡Todos los familiares ya ingresaron sus regalos! Ya puedes entrar con la clave 'famamv' y lanzar el sorteo.");
+        }
       } else {
-        resetBtn.style.display = "none";
-        sendEmailsBtn.style.display = "none";
+        statusText.innerText = `Registrados: 0 de ${participantes.length}`;
       }
     });
 
-    // Enviar formulario (guardar en Firebase)
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nombre = form.nombre.value.trim();
-      const correo = form.correo.value.trim();
-      const regalo = form.regalo.value.trim();
+    // PASO 1: Solicitar PIN
+    document.getElementById("btnSolicitarPin").addEventListener("click", async () => {
+      const nombre = nombreSelect.value;
+      if (!nombre) return alert("Selecciona un nombre");
 
-      push(participantesRef, { nombre, correo, regalo }).then(() => {
-        form.reset();
-        statusText.innerText = "✅ Registration complete!";
-        setTimeout(() => statusText.innerText = "", 3000);
-      });
+      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      const telefono = directorio[nombre];
+
+      await set(ref(db, `pines/${nombre}`), pin);
+      await enviarWhatsApp(telefono, `🎅 Tu PIN para el Amigo Secreto es: *${pin}*`);
+      
+      document.getElementById("step1").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+      statusText.innerText = "PIN enviado a tu WhatsApp ✅";
     });
 
-    // Reiniciar sistema
-    resetBtn.addEventListener("click", async () => {
-      if (confirm("¿Seguro que quieres reiniciar todo?")) {
-        await remove(participantesRef);
-        alert("🔥 Sistema reiniciado correctamente.");
+    // PASO 2: Validar PIN
+    document.getElementById("btnValidarPin").addEventListener("click", async () => {
+      const nombre = nombreSelect.value;
+      const pinIngresado = document.getElementById("pinInput").value;
+
+      const snapshot = await get(ref(db, `pines/${nombre}`));
+      if (snapshot.exists() && snapshot.val() === pinIngresado) {
+        document.getElementById("step2").classList.add("hidden");
+        document.getElementById("step3").classList.remove("hidden");
+        statusText.innerText = "Identidad validada ✅";
+      } else {
+        alert("PIN incorrecto");
+      }
+    });
+
+    // PASO 3: Guardar Regalo
+    document.getElementById("btnGuardarRegalo").addEventListener("click", async () => {
+      const nombre = nombreSelect.value;
+      const regalo = document.getElementById("regaloInput").value;
+      const telefono = directorio[nombre];
+
+      await set(ref(db, `registros/${nombre}`), { nombre, telefono, regalo });
+      
+      document.getElementById("step3").classList.add("hidden");
+      statusText.innerText = "¡Listo! Ya estás participando 🎄";
+    });
+
+    // MODO ADMIN
+    document.getElementById("adminCode").addEventListener("input", (e) => {
+      if (e.target.value.toLowerCase() === "famamv") {
+        document.getElementById("btnSortear").classList.remove("hidden");
+        document.getElementById("btnReset").classList.remove("hidden");
+      } else {
+        document.getElementById("btnSortear").classList.add("hidden");
+        document.getElementById("btnReset").classList.add("hidden");
+      }
+    });
+
+    // SORTEO
+    document.getElementById("btnSortear").addEventListener("click", async () => {
+      const snapshot = await get(ref(db, "registros"));
+      if (!snapshot.exists() || Object.keys(snapshot.val()).length !== participantes.length) {
+        return alert(`Faltan personas por registrarse.`);
+      }
+
+      const datos = snapshot.val();
+      let sorteoValido = false;
+      let receptores = [];
+
+      while (!sorteoValido) {
+        receptores = [...participantes].sort(() => Math.random() - 0.5);
+        sorteoValido = true;
+
+        for (let i = 0; i < participantes.length; i++) {
+          let dador = participantes[i];
+          let receptor = receptores[i];
+
+          if (dador === receptor) sorteoValido = false;
+          if (receptor === usuarioPrincipal && restringidos.includes(dador)) sorteoValido = false;
+          if (dador === usuarioPrincipal && restringidos.includes(receptor)) sorteoValido = false;
+        }
+
+        if (sorteoValido) {
+          let receptorDePrincipal = receptores[participantes.indexOf(usuarioPrincipal)];
+          let dadorDePrincipal = participantes[receptores.indexOf(usuarioPrincipal)];
+          
+          if (receptorDePrincipal === dadorDePrincipal) {
+            sorteoValido = false;
+          }
+        }
+      }
+
+      if (confirm("Sorteo exitoso. ¿Enviar resultados por WhatsApp?")) {
+        for (let i = 0; i < participantes.length; i++) {
+          let dador = participantes[i];
+          let receptor = receptores[i];
+          let regaloReceptor = datos[receptor].regalo;
+          let telefonoDador = datos[dador].telefono;
+
+          let mensaje = `🎄 *SORTEO AMIGO SECRETO* 🎄\n\nHola ${dador}, te tocó darle regalo a: *${receptor}*\n\n🎁 *Lo que quiere:* ${regaloReceptor}`;
+          
+          await enviarWhatsApp(telefonoDador, mensaje);
+          await new Promise(res => setTimeout(res, 1500)); 
+        }
+        alert("✅ Todos los WhatsApps enviados.");
+      }
+    });
+
+    // REINICIAR
+    document.getElementById("btnReset").addEventListener("click", async () => {
+      if (confirm("¿Borrar toda la base de datos?")) {
+        await remove(ref(db, "registros"));
+        await remove(ref(db, "pines"));
         location.reload();
       }
-    });
-
-    // Mezclar sin repetidos
-    function mezclarYEmparejar(lista) {
-      const nombres = lista.map(p => p.nombre);
-      const receptores = [...nombres];
-      let mezclado = false;
-
-      while (!mezclado) {
-        for (let i = receptores.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [receptores[i], receptores[j]] = [receptores[j], receptores[i]];
-        }
-        mezclado = !receptores.some((r, i) => r === nombres[i]);
-      }
-
-      return nombres.map((dador, i) => ({
-        dador,
-        correo: lista[i].correo,
-        receptor: receptores[i],
-        regalo: lista.find(p => p.nombre === receptores[i]).regalo
-      }));
-    }
-
-    // ✅ Enviar correos solo con botón del admin
-    sendEmailsBtn.addEventListener("click", async () => {
-      const lista = Object.values(participantes);
-
-      if (lista.length !== 11) {
-        alert("⚠️ Debe haber exactamente 11 participantes registrados antes de enviar los correos.");
-        return;
-      }
-
-      if (!confirm("¿Estás seguro de enviar los correos del Santa Secreto?")) return;
-
-      const parejas = mezclarYEmparejar(lista);
-      let enviados = 0;
-
-      for (const [index, par] of parejas.entries()) {
-        try {
-          console.log(`📨 Enviando correo ${index + 1}/11 a ${par.dador} (${par.correo})...`);
-
-          await emailjs.send("service_x20t9vh", "template_yla91y2", {
-            to_name: par.dador,
-            to_email: par.correo,
-            secret_friend: par.receptor,
-            secret_gift: par.regalo
-          });
-
-          enviados++;
-          console.log(`✅ ${enviados}/11 enviado correctamente a ${par.dador}`);
-
-          // Espera 2 segundos entre correos para evitar límite
-          await new Promise(res => setTimeout(res, 2000)); 
-        } catch (err) {
-          console.error(`❌ Error al enviar correo a ${par.dador}:`, err);
-        }
-      }
-
-      alert(`✅ Correos enviados exitosamente (${enviados}/11 completados).`);
     });
   </script>
 </body>
