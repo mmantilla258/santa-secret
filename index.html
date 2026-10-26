@@ -116,8 +116,18 @@
     });
 
     async function enviarWhatsApp(telefono, mensaje) {
-      // AQUÍ VA LA CONEXIÓN A TU API DE WHATSAPP
-      console.log(`Enviando a ${telefono}: ${mensaje}`);
+      const token = "PEGA_AQUI_EL_TOKEN_LARGO_QUE_COMIENZA_CON_EAAMP3";
+      const phoneId = "1361285673738664";
+      const numero = telefono.replace("+", ""); 
+      const url = `https://graph.facebook.com/v25.0/${phoneId}/messages`;
+    
+      try {
+        await fetch(url, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: numero, type: "text", text: { body: mensaje } })
+        });
+      } catch (error) {}
     }
 
     onValue(ref(db, "registros"), async (snapshot) => {
