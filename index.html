@@ -4,18 +4,221 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secret Santa 2026</title>
+    <meta name="theme-color" content="#0d1f18">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #333; color: white; padding: 20px; }
-        .card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; max-width: 400px; margin: auto; }
-        select, input, button { width: 90%; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; font-size: 16px; box-sizing: border-box; }
-        button { background: #c0392b; color: white; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        .hidden { display: none; }
-        .success { color: #2ecc71; font-weight: bold; }
-        .error { color: #ff7675; font-weight: bold; }
-        .link { background: none; color: #ccc; text-decoration: underline; font-weight: normal; font-size: 14px; }
-        .boton-wpp { display: inline-block; width: 90%; margin: 20px 0 0; padding: 10px; border-radius: 5px; font-size: 16px; box-sizing: border-box;
-                     background: #25D366; color: white; font-weight: bold; text-decoration: none; }
+        /* ---------- Colores y medidas (cambiar aquí para ajustar el estilo) ---------- */
+        :root {
+            --fondo-1: #0d1f18;          /* verde pino oscuro */
+            --fondo-2: #3b0f16;          /* vino */
+            --tarjeta: rgba(255, 255, 255, 0.07);
+            --borde: rgba(255, 255, 255, 0.14);
+            --texto: #f7f2e9;            /* crema */
+            --suave: #b8c4bc;
+            --rojo: #e5484d;
+            --rojo-oscuro: #b42830;
+            --verde: #34c77b;
+            --oro: #f2c14e;
+            --error: #ff8f8f;
+            --radio: 16px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            padding: 28px 16px 40px;
+            font-family: "Poppins", system-ui, sans-serif;
+            color: var(--texto);
+            text-align: center;
+            background:
+                radial-gradient(1200px 600px at 10% -10%, rgba(229, 72, 77, 0.28), transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, rgba(242, 193, 78, 0.14), transparent 60%),
+                linear-gradient(160deg, var(--fondo-1) 0%, #10261d 45%, var(--fondo-2) 100%);
+            background-attachment: fixed;
+        }
+
+        /* Nieve suave de fondo (se desactiva si el teléfono pide "reducir movimiento") */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: -100px 0 0 0;
+            pointer-events: none;
+            opacity: 0.35;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #fff 50%, transparent 51%),
+                radial-gradient(2px 2px at 120px 80px, #fff 50%, transparent 51%),
+                radial-gradient(1.5px 1.5px at 200px 150px, #fff 50%, transparent 51%),
+                radial-gradient(1.5px 1.5px at 60px 190px, #fff 50%, transparent 51%),
+                radial-gradient(2px 2px at 260px 40px, #fff 50%, transparent 51%);
+            background-size: 300px 220px;
+            animation: nieve 18s linear infinite;
+        }
+        @keyframes nieve { to { transform: translateY(220px); } }
+        @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+
+        .contenedor { position: relative; max-width: 420px; margin: 0 auto; }
+
+        /* ---------- Encabezado ---------- */
+        .insignia {
+            width: 72px; height: 72px; margin: 0 auto 12px;
+            display: grid; place-items: center;
+            font-size: 38px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
+            border: 1px solid var(--borde);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+        h1 {
+            margin: 0;
+            font-size: clamp(28px, 8vw, 36px);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, var(--oro), var(--texto));
+            -webkit-background-clip: text; background-clip: text;
+            color: transparent;
+        }
+        .subtitulo { margin: 4px 0 20px; color: var(--suave); font-size: 15px; }
+
+        /* ---------- Tarjetas ---------- */
+        .card {
+            background: var(--tarjeta);
+            border: 1px solid var(--borde);
+            border-radius: var(--radio);
+            padding: 22px 18px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        /* ---------- Cuenta regresiva ---------- */
+        .cuenta-titulo { margin: 0 0 12px; font-size: 14px; color: var(--suave); }
+        .cuenta-titulo strong { color: var(--texto); font-weight: 600; white-space: nowrap; }
+        .cuenta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .cuenta div {
+            padding: 10px 4px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--borde);
+        }
+        .cuenta b { display: block; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .cuenta span { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--suave); }
+
+        /* ---------- Formularios ---------- */
+        .etiqueta { display: block; text-align: left; margin: 4px 2px 6px; font-size: 14px; font-weight: 600; }
+        select, input, textarea, button {
+            width: 100%;
+            font: inherit;
+            font-size: 16px;               /* 16px evita el zoom automático en iPhone */
+            border-radius: 12px;
+        }
+        select, input, textarea {
+            padding: 12px 14px;
+            color: var(--texto);
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid var(--borde);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--oro);
+            box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.25);
+        }
+        select {
+            appearance: none; -webkit-appearance: none;
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23f7f2e9' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        select option { color: #111; }
+        select:disabled { opacity: 0.7; }
+        textarea { resize: vertical; min-height: 90px; }
+        textarea:disabled { opacity: 0.6; }
+        .pin {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 12px;
+            padding-left: 26px;           /* compensa el espacio entre letras para que se vea centrado */
+        }
+        .contador { display: block; text-align: right; color: var(--suave); font-size: 12px; margin: 4px 2px 0; }
+
+        /* ---------- Botones ---------- */
+        button {
+            margin-top: 12px;
+            padding: 13px 16px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--rojo), var(--rojo-oscuro));
+            box-shadow: 0 8px 20px rgba(229, 72, 77, 0.3);
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        }
+        button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(229, 72, 77, 0.4); }
+        button:active:not(:disabled) { transform: translateY(1px); }
+        button:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; }
+        button:focus-visible, a:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+        .secundario {
+            background: transparent;
+            border: 1px solid var(--borde);
+            box-shadow: none;
+        }
+        .secundario:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); box-shadow: none; }
+        .link {
+            width: auto;
+            background: none;
+            box-shadow: none;
+            color: var(--suave);
+            font-weight: 500;
+            font-size: 14px;
+            text-decoration: underline;
+            padding: 8px;
+        }
+        .link:hover:not(:disabled) { color: var(--texto); box-shadow: none; transform: none; }
+        .boton-wpp {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--verde);
+            border: 1px solid rgba(52, 199, 123, 0.5);
+            background: rgba(52, 199, 123, 0.08);
+            transition: background 0.15s;
+        }
+        .boton-wpp:hover { background: rgba(52, 199, 123, 0.16); }
+
+        /* ---------- Mensajes (mostrarEstado cambia la clase a "success" o "error") ---------- */
+        .hidden { display: none !important; }
+        .success, .error {
+            margin: 14px 0 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+        }
+        .success { color: #c8f5dc; background: rgba(52, 199, 123, 0.14); border: 1px solid rgba(52, 199, 123, 0.35); }
+        .error { color: var(--error); background: rgba(255, 143, 143, 0.1); border: 1px solid rgba(255, 143, 143, 0.35); }
+
+        /* ---------- Secciones dentro de la tarjeta ---------- */
+        .seccion { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--borde); }
+        .texto-suave { color: var(--suave); font-size: 14px; margin: 0 0 10px; }
+        .saludo { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+        .nota { color: var(--suave); font-size: 12px; margin: 10px 0 0; }
+        .pie { color: var(--suave); font-size: 12px; opacity: 0.8; margin-top: 8px; }
+
+        /* Aparición suave de las secciones */
+        .seccion, .card { animation: aparecer 0.35s ease-out; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } }
+        @media (prefers-reduced-motion: reduce) { .seccion, .card { animation: none; } }
     </style>
     <!-- SDK de EmailJS (versión fija + huella "integrity": si el archivo del CDN cambia, el navegador no lo ejecuta) -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
@@ -24,9 +227,26 @@
 </head>
 <body>
 
-    <div class="card">
-        <h2>🎅 Secret Santa 2026 🎁</h2>
+    <main class="contenedor">
+        <header>
+            <div class="insignia" aria-hidden="true">🎅</div>
+            <h1>Secret Santa 2026</h1>
+            <p class="subtitulo">Intercambio de regalos en familia 🎁</p>
+        </header>
 
+        <!-- Cuenta regresiva al sorteo (la fecha está en FECHA_SORTEO, en el script) -->
+        <section class="card" aria-live="polite">
+            <p class="cuenta-titulo" id="cuentaTitulo">Sorteo: <strong>domingo 8 de nov · 8:00 a. m.</strong></p>
+            <div class="cuenta" id="cuenta">
+                <div><b id="cdDias">–</b><span>días</span></div>
+                <div><b id="cdHoras">–</b><span>horas</span></div>
+                <div><b id="cdMin">–</b><span>min</span></div>
+                <div><b id="cdSeg">–</b><span>seg</span></div>
+            </div>
+        </section>
+
+    <div class="card">
+        <label class="etiqueta" for="participanteSelect">¿Quién eres?</label>
         <select id="participanteSelect">
             <option value="">Selecciona tu nombre</option>
             <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
@@ -40,28 +260,54 @@
             <option value="Familiar8">Familiar 8</option>
         </select>
 
-        <button id="btnSolicitar">✉️ Solicitar PIN</button>
-        <button id="btnReenviar" class="hidden">Reenviar código</button>
+        <button id="btnSolicitar">✉️ Enviarme un PIN</button>
+        <button id="btnReenviar" class="secundario hidden">Reenviar código</button>
         <button id="btnCambiar" class="link hidden">No soy yo / cambiar nombre</button>
 
         <p id="msjEstado" class="hidden"></p>
 
-        <div id="zonaValidacion" class="hidden">
-            <p>Ingresa el PIN de 4 dígitos que llegó a tu correo</p>
-            <input type="text" id="inputPIN" placeholder="PIN secreto" maxlength="4" inputmode="numeric" autocomplete="one-time-code">
-            <button id="btnValidar">🔓 Validar</button>
+        <div id="zonaValidacion" class="seccion hidden">
+            <label class="etiqueta" for="inputPIN">Escribe el PIN de 4 dígitos que llegó a tu correo</label>
+            <input type="text" id="inputPIN" class="pin" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+            <button id="btnValidar">🔓 Entrar</button>
         </div>
 
-        <div id="zonaRegalo" class="hidden">
-            <p>¡Identidad confirmada, <span id="nombreConfirmado"></span>!</p>
-            <!-- Aquí irá Firebase: guardar el regalo y ver el resultado del sorteo -->
-        </div>
+        <div id="zonaRegalo" class="seccion hidden">
+            <p class="saludo">¡Hola, <span id="nombreConfirmado"></span>! 👋</p>
+            <p class="texto-suave">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
 
-        <!-- Solo comparte el enlace de la página; nunca datos secretos (PIN, sorteo) -->
-        <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
+            <label class="etiqueta" for="inputDeseo">🎁 Mi deseo de regalo</label>
+            <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" disabled></textarea>
+            <small id="contadorDeseo" class="contador">0/200</small>
+            <button id="btnGuardarDeseo" disabled>💾 Guardar deseo</button>
+            <p id="msjDeseo" class="hidden"></p>
+            <p class="nota" id="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
+            <!-- Aquí irá el resultado del sorteo -->
+        </div>
     </div>
 
-    <script>
+        <!-- Solo comparte el enlace de la página; nunca datos secretos (PIN, sorteo) -->
+        <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">📲 Invitar a la familia por WhatsApp</a>
+        <p class="pie">Hecho con ❤️ para la familia</p>
+    </main>
+
+    <script type="module">
+        // 0. FIREBASE (console.firebase.google.com > Configuración del proyecto > Tus apps)
+        //    firebaseConfig es público por diseño; la protección real son las reglas de Firestore (firestore.rules).
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAEBZRIAvdd4mBNGgi8MJxJN_UpoRYnl8",
+            authDomain: "santa-secret-2026-45ed4.firebaseapp.com",
+            projectId: "santa-secret-2026-45ed4",
+            storageBucket: "santa-secret-2026-45ed4.firebasestorage.app",
+            messagingSenderId: "875606735261",
+            appId: "1:875606735261:web:61be52fb93701f258f9774"
+        };
+
+        const db = getFirestore(initializeApp(firebaseConfig));
+
         // 1. CREDENCIALES DE EMAILJS (dashboard.emailjs.com)
         //    La Public Key está pensada para ir en el navegador; no es un secreto.
         const EMAILJS_PUBLIC_KEY  = "7QYQQLtJAtbll1gS8";  // Account > General > Public Key
@@ -92,18 +338,23 @@
         const VIGENCIA_PIN_MS   = 5 * 60 * 1000; // el PIN vale 5 min desde el último envío
         const REGENERAR_PIN_MS  = 8 * 60 * 1000; // a los 8 min del primer envío se crea uno nuevo
         const COOLDOWN_SEG      = 60;
+        // Día del sorteo: domingo 8 de noviembre de 2026, 8:00 a. m. hora de Colombia (UTC-5).
+        // Si cambias esta fecha, cámbiala también en firestore.rules (timestamp.value) y en los textos del HTML.
+        const FECHA_SORTEO      = new Date("2026-11-08T08:00:00-05:00");
+        const plazoCerrado      = () => Date.now() >= FECHA_SORTEO.getTime();
 
         let pinActual = null;
         let pinUsuario = "";        // a quién pertenece el PIN actual
         let tiempoPrimerEnvio = 0;
         let tiempoUltimoEnvio = 0;
         let usuarioActual = "";
+        let usuarioValidado = "";   // solo se llena cuando el PIN fue correcto
         let temporizador = null;
 
         const $ = (id) => document.getElementById(id);
 
-        function mostrarEstado(texto, tipo) {
-            const msj = $("msjEstado");
+        function mostrarEstado(texto, tipo, idMensaje = "msjEstado") {
+            const msj = $(idMensaje);
             msj.innerText = texto;
             msj.className = tipo; // "success" o "error"
         }
@@ -205,6 +456,7 @@
         function cambiarUsuario() {
             pinActual = null;
             pinUsuario = "";
+            usuarioValidado = "";
             clearInterval(temporizador);
             $("participanteSelect").disabled = false;
             $("participanteSelect").value = "";
@@ -235,16 +487,92 @@
                 clearInterval(temporizador);
                 pinActual = null; // un PIN usado no se puede reutilizar
                 ["zonaValidacion", "msjEstado", "btnReenviar", "btnCambiar"].forEach(id => $(id).classList.add("hidden"));
-                $("nombreConfirmado").innerText = usuarioActual;
+                usuarioValidado = usuarioActual;
+                $("nombreConfirmado").innerText = usuarioValidado;
                 $("zonaRegalo").classList.remove("hidden");
-                // Aquí irán las funciones de Firebase
+                cargarDeseo();
             } else {
                 mostrarEstado("PIN incorrecto. Intenta nuevamente.", "error");
             }
         }
 
-        // 7. BOTONES (con addEventListener en vez de onclick="", para que sigan funcionando
-        //    cuando el script pase a ser <script type="module"> al integrar Firebase)
+        // 7. DESEO DE REGALO EN FIRESTORE (colección "deseos", un documento por nombre)
+        const MAX_DESEO = 200;
+
+        // Firestore devuelve códigos como "permission-denied"; los traducimos a algo entendible
+        function explicarErrorFirebase(error) {
+            if (error && error.code === "permission-denied") {
+                return "La base de datos no lo permitió (puede que el sorteo ya se haya hecho).";
+            }
+            if (error && error.code === "unavailable") {
+                return "Sin conexión con la base de datos. Revisa tu internet.";
+            }
+            return `Ocurrió un error${error && error.code ? ` (${error.code})` : ""}.`;
+        }
+
+        async function cargarDeseo() {
+            const input = $("inputDeseo");
+            mostrarEstado("Cargando tu deseo…", "success", "msjDeseo");
+            try {
+                const docDeseo = await getDoc(doc(db, "deseos", usuarioValidado));
+                input.value = docDeseo.exists() ? docDeseo.data().deseo : "";
+                $("msjDeseo").className = "hidden";
+            } catch (error) {
+                console.error("Error de Firestore:", error);
+                mostrarEstado(`No se pudo cargar tu deseo. ${explicarErrorFirebase(error)}`, "error", "msjDeseo");
+            }
+            actualizarContador();
+            actualizarPlazoDeseo();
+        }
+
+        // Habilita la edición del deseo solo antes del sorteo (las reglas de Firestore también lo exigen)
+        function actualizarPlazoDeseo() {
+            const cerrado = plazoCerrado();
+            $("inputDeseo").disabled = cerrado;
+            $("btnGuardarDeseo").disabled = cerrado;
+            if (cerrado) $("notaPlazo").innerText = "🔒 El plazo para editar deseos ya terminó.";
+        }
+
+        async function guardarDeseo() {
+            const deseo = $("inputDeseo").value.trim();
+            if (!usuarioValidado) {
+                mostrarEstado("Primero valida tu PIN.", "error", "msjDeseo");
+                return;
+            }
+            if (!deseo) {
+                mostrarEstado("Escribe tu deseo antes de guardar.", "error", "msjDeseo");
+                return;
+            }
+            if (plazoCerrado()) {
+                actualizarPlazoDeseo();
+                mostrarEstado("El plazo para editar deseos ya terminó.", "error", "msjDeseo");
+                return;
+            }
+
+            const btn = $("btnGuardarDeseo");
+            btn.disabled = true;
+            mostrarEstado("Guardando…", "success", "msjDeseo");
+            try {
+                await setDoc(doc(db, "deseos", usuarioValidado), {
+                    deseo: deseo.slice(0, MAX_DESEO),
+                    actualizado: serverTimestamp()
+                });
+                mostrarEstado("¡Deseo guardado! 🎁 Puedes editarlo hasta el día del sorteo.", "success", "msjDeseo");
+            } catch (error) {
+                console.error("Error de Firestore:", error);
+                mostrarEstado(`No se pudo guardar tu deseo. ${explicarErrorFirebase(error)}`, "error", "msjDeseo");
+            }
+            btn.disabled = false;
+        }
+
+        function actualizarContador() {
+            $("contadorDeseo").innerText = `${$("inputDeseo").value.length}/${MAX_DESEO}`;
+        }
+
+        // 8. BOTONES (con addEventListener: en un <script type="module"> las funciones no son globales,
+        //    así que onclick="" no las encontraría)
+        $("btnGuardarDeseo").addEventListener("click", guardarDeseo);
+        $("inputDeseo").addEventListener("input", actualizarContador);
         $("btnSolicitar").addEventListener("click", gestionarPIN);
         $("btnReenviar").addEventListener("click", gestionarPIN);
         $("btnCambiar").addEventListener("click", cambiarUsuario);
@@ -252,12 +580,39 @@
         $("inputPIN").addEventListener("keydown", (e) => {
             if (e.key === "Enter") validarPIN();
         });
+        // Solo dígitos: borra letras y símbolos al escribir o pegar, y luego recorta a 4
+        // (sin maxlength en el HTML, porque cortaría un PIN pegado como "12-34" antes de limpiarlo)
+        $("inputPIN").addEventListener("input", (e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+        });
 
-        // 8. COMPARTIR POR WHATSAPP (enlace wa.me: abre WhatsApp con el mensaje escrito; la persona pulsa Enviar)
+        // 9. COMPARTIR POR WHATSAPP (enlace wa.me: abre WhatsApp con el mensaje escrito; la persona pulsa Enviar)
         //    Se usa la dirección actual de la página, sin parámetros, así funciona igual en GitHub Pages.
         const urlPagina = location.origin + location.pathname;
         const mensajeWpp = `🎅 ¡Ya está abierto el Secret Santa 2026! Entra, elige tu nombre y registra tu deseo de regalo 🎁\n${urlPagina}`;
         $("btnWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(mensajeWpp);
+
+        // 10. CUENTA REGRESIVA AL SORTEO
+        let temporizadorCuenta = null;
+
+        function actualizarCuenta() {
+            const restante = FECHA_SORTEO.getTime() - Date.now();
+            if (restante <= 0) {
+                clearInterval(temporizadorCuenta);
+                $("cuenta").classList.add("hidden");
+                $("cuentaTitulo").innerHTML = "🎉 <strong>¡Llegó el día del sorteo!</strong>";
+                if (usuarioValidado) actualizarPlazoDeseo();
+                return;
+            }
+            const seg = Math.floor(restante / 1000);
+            $("cdDias").innerText  = Math.floor(seg / 86400);
+            $("cdHoras").innerText = String(Math.floor(seg / 3600) % 24).padStart(2, "0");
+            $("cdMin").innerText   = String(Math.floor(seg / 60) % 60).padStart(2, "0");
+            $("cdSeg").innerText   = String(seg % 60).padStart(2, "0");
+        }
+
+        actualizarCuenta();
+        temporizadorCuenta = setInterval(actualizarCuenta, 1000);
     </script>
 </body>
 </html>

@@ -12,8 +12,11 @@ confirmación antes de decisiones que no se puedan deshacer.
 - **Correo:** EmailJS (SDK v4 por CDN: `@emailjs/browser@4`), plan gratuito. Todo lo secreto (PIN, sorteo) va por correo.
 - **WhatsApp:** solo un botón "Compartir por WhatsApp" con un enlace `wa.me` que comparte la URL de la página.
   Sin API de Meta ni tokens (decidido 2026-11-02: no hay opción automática gratis sin servidor).
-- **Base de datos:** Firebase (Firestore), **pendiente de integrar**. Usar el SDK modular por CDN
-  (`https://www.gstatic.com/firebasejs/<versión>/firebase-*.js`) con `<script type="module">`.
+- **Base de datos:** Firebase (Firestore), proyecto `santa-secret-2026-45ed4`, plan Spark. SDK modular por CDN
+  fijado en `12.19.0` (`https://www.gstatic.com/firebasejs/12.19.0/firebase-*.js`) con `<script type="module">`.
+  - Datos: `deseos/{nombre}` = `{ deseo, actualizado }` · `config/sorteo` = `{ presupuesto, fecha_entrega, realizado }`.
+  - Las reglas viven en `firestore.rules` (copia en el repo); Miguel las pega a mano en la consola de Firebase.
+    Si se cambian, recordarle que las vuelva a publicar.
 - Idioma: toda la interfaz, mensajes y comentarios del código en **español**.
 - Debe verse bien en celular (la mayoría de familiares entrará desde el teléfono).
 
@@ -63,8 +66,13 @@ Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostra
    permite 5 correos de enlace al día.)
    - EmailJS gratuito **no permite restringir dominios**: la lista de dominios queda vacía y solo se
      mantiene desactivada la opción "Allow EmailJS API for non-browser applications".
-3. Conectar Firebase (proyecto, `firebaseConfig`, Firestore en modo producción con reglas propias).
-4. Cada usuario guarda su **deseo de regalo** (texto corto; se puede editar hasta el sorteo).
+3. ✅ Conectar Firebase (proyecto, `firebaseConfig`, Firestore en modo producción con reglas propias).
+4. ✅ Cada usuario guarda su **deseo de regalo** (máx. 200 caracteres; editable mientras `config/sorteo.realizado != true`).
+   - **Fecha del sorteo: domingo 8 de noviembre de 2026, 8:00 a. m. hora de Colombia** (`FECHA_SORTEO` en
+     `index.html`, `timestamp.value(1794142800000)` en `firestore.rules`, y textos del HTML: cambiar los tres juntos).
+     Desde esa hora ya no se pueden editar deseos. La página muestra una cuenta regresiva.
+   - No hay servidor: el sorteo no se ejecuta solo; Miguel lo lanza desde la página a esa hora.
+   - Pendiente: presupuesto y fecha de entrega de los regalos (para la plantilla del sorteo).
 5. **Sorteo:**
    - Permutación aleatoria donde nadie se saca a sí mismo (derangement). Usar Fisher-Yates con
      `crypto.getRandomValues` y reintentar hasta cumplir las restricciones.
