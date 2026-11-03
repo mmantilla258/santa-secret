@@ -50,7 +50,15 @@ confirmación antes de decisiones que no se puedan deshacer.
    - A los **8 minutos** del primer envío se genera un PIN completamente nuevo.
    - El PIN queda ligado al usuario: el selector se bloquea; "No soy yo / cambiar nombre" reinicia todo.
    - Un PIN validado no se puede reutilizar.
-4. Con el PIN correcto se muestra `#zonaRegalo`, donde irá la lógica de Firebase.
+4. Con el PIN correcto se muestra `#zonaRegalo` (deseo) y, para el organizador, `#panelOrganizador`.
+5. **Sesión recordada:** al validar el PIN se guarda en `localStorage` (`sesionSecretSanta`) por **7 días**
+   (`SESION_DIAS`), para no gastar un correo de EmailJS en cada visita. "Cerrar sesión" (`#btnSalir`) la borra.
+
+## Vista previa al compartir
+
+Etiquetas `og:*` en el `<head>` con `vista-previa.jpg` (1200×630, foto completa centrada con fondo desenfocado,
+debe pesar < 300 KB para WhatsApp). Si se cambia la foto, regenerar esa imagen. WhatsApp guarda la vista previa
+la primera vez que ve el enlace: conviene tenerla lista antes de compartirlo.
 
 ## EmailJS
 
