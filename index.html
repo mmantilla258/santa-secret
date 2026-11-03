@@ -523,18 +523,17 @@
             <p class="texto-suave">Elige tu nombre y te enviaremos un código de acceso a tu correo.</p>
 
             <label class="etiqueta" for="participanteSelect">¿Quién eres?</label>
+            <!-- Las opciones se crean desde la lista PARTICIPANTES del script -->
             <select id="participanteSelect">
                 <option value="">Selecciona tu nombre</option>
-                <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
-                <option value="Alejandro">Alejandro</option>
-                <option value="Familiar2">Familiar 2</option>
-                <option value="Familiar3">Familiar 3</option>
-                <option value="Familiar4">Familiar 4</option>
-                <option value="Familiar5">Familiar 5</option>
-                <option value="Familiar6">Familiar 6</option>
-                <option value="Familiar7">Familiar 7</option>
-                <option value="Familiar8">Familiar 8</option>
             </select>
+
+            <!-- Solo aparece la primera vez que alguien entra (cuando aún no tiene correo guardado) -->
+            <div id="zonaRegistro" class="hidden">
+                <label class="etiqueta" for="inputCorreo">Es tu primera vez: escribe tu correo</label>
+                <input type="email" id="inputCorreo" placeholder="nombre@correo.com" autocomplete="email" inputmode="email" maxlength="100">
+                <p class="nota">Te enviaremos un código para confirmarlo. Revísalo bien: después no se puede cambiar.</p>
+            </div>
 
             <button id="btnSolicitar">Enviarme el código</button>
             <button id="btnReenviar" class="secundario hidden">Reenviar código</button>
@@ -607,20 +606,25 @@
             limitRate: { id: "secret-santa", throttle: 10000 } // máx. 1 envío cada 10 s por navegador
         });
 
-        // 2. CORREOS DE LOS PARTICIPANTES
-        //    OJO: el repositorio es público; lo que pongas aquí y subas a GitHub lo puede ver cualquiera.
-        //    PRUEBA INTERNA: Familiar2..8 usan alias "+" de Gmail que llegan a la bandeja de Alejandro (organizador).
-        //    Antes de invitar a la familia, cambiar por los nombres y correos reales (aquí y en el <select>).
-        const correos = {
-            "Alejandro": "mmantilla258@gmail.com",
-            "Familiar2": "mmantilla258+familiar2@gmail.com",
-            "Familiar3": "mmantilla258+familiar3@gmail.com",
-            "Familiar4": "mmantilla258+familiar4@gmail.com",
-            "Familiar5": "mmantilla258+familiar5@gmail.com",
-            "Familiar6": "mmantilla258+familiar6@gmail.com",
-            "Familiar7": "mmantilla258+familiar7@gmail.com",
-            "Familiar8": "mmantilla258+familiar8@gmail.com"
+        // 2. PARTICIPANTES Y CORREOS
+        //    El nombre se usa tal cual como identificador en Firestore (deseos/{nombre}, correos/{nombre}):
+        //    si cambias un nombre aquí, sus datos guardados con el nombre anterior quedan huérfanos.
+        const PARTICIPANTES = [
+            "Alejandro",
+            "Luddy Laguado",
+            "Ismael Moncada",
+            "Miguel Angel",
+            "Blanca",
+            "Estefania",
+            "Bart",
+            "Angelica"
+        ];
+        // Correos escritos en el código (repositorio público). Los demás participantes registran el suyo
+        // la primera vez que entran, y queda guardado en Firestore (correos/{nombre}).
+        const CORREOS_FIJOS = {
+            "Alejandro": "mmantilla258@gmail.com"
         };
+        const FORMATO_CORREO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
         // 3. CONSTANTES Y ESTADO
         const VIGENCIA_PIN_MS   = 5 * 60 * 1000; // el PIN vale 5 min desde el último envío
@@ -634,16 +638,18 @@
         const PRESUPUESTO       = "$250.000 COP";
         const FECHA_ENTREGA     = "24 de diciembre";
 
-        // Quién puede hacer el sorteo (debe coincidir con una clave de "correos")
+        // Quién puede hacer el sorteo (debe estar en PARTICIPANTES)
         const ORGANIZADOR       = "Alejandro";
-        // Parejas que no pueden regalarse entre sí, en ningún sentido (usar las claves de "correos")
+        // Parejas que no pueden regalarse entre sí, en ningún sentido (usar los nombres de PARTICIPANTES)
         const PAREJAS_EXCLUIDAS = [
-            ["Alejandro", "Familiar2"],
-            ["Alejandro", "Familiar3"],
-            ["Alejandro", "Familiar4"],
-            ["Alejandro", "Familiar5"]
+            ["Alejandro", "Luddy Laguado"],
+            ["Alejandro", "Ismael Moncada"],
+            ["Alejandro", "Miguel Angel"],
+            ["Alejandro", "Blanca"]
         ];
 
+        let correoActual = "";      // correo al que se envía el PIN del usuario elegido
+        let correoEsNuevo = false;  // true si el usuario aún no tiene correo guardado (se guarda al validar el PIN)
         let pinActual = null;
         let pinUsuario = "";        // a quién pertenece el PIN actual
         let tiempoPrimerEnvio = 0;
@@ -671,6 +677,42 @@
             });
         }
 
+        // 4b. CORREO DE CADA PARTICIPANTE (fijo en el código o guardado en Firestore)
+        async function buscarCorreo(nombre) {
+            if (CORREOS_FIJOS[nombre]) return CORREOS_FIJOS[nombre];
+            const docCorreo = await getDoc(doc(db, "correos", nombre));
+            return docCorreo.exists() ? docCorreo.data().correo : "";
+        }
+
+        // Al elegir un nombre: si ya tiene correo, se usa; si no, se muestra el campo para registrarlo
+        async function revisarRegistro() {
+            const nombre = $("participanteSelect").value;
+            const btn = $("btnSolicitar");
+            correoActual = "";
+            correoEsNuevo = false;
+            $("zonaRegistro").classList.add("hidden");
+            $("msjEstado").className = "hidden";
+            if (!nombre) return;
+
+            btn.disabled = true;
+            try {
+                const correo = await buscarCorreo(nombre);
+                if ($("participanteSelect").value !== nombre) return; // cambió de nombre mientras buscábamos
+                if (correo) {
+                    correoActual = correo;
+                } else {
+                    correoEsNuevo = true;
+                    $("inputCorreo").value = "";
+                    $("zonaRegistro").classList.remove("hidden");
+                    $("inputCorreo").focus();
+                }
+            } catch (error) {
+                console.error("Error de Firestore:", error);
+                mostrarEstado(`No se pudo consultar tu correo. ${explicarErrorFirebase(error)}`, "error");
+            }
+            btn.disabled = false;
+        }
+
         // 5. GENERACIÓN, TIEMPOS Y ENVÍO DEL PIN
         async function gestionarPIN() {
             usuarioActual = $("participanteSelect").value;
@@ -679,7 +721,18 @@
                 return;
             }
 
-            const correo = correos[usuarioActual];
+            // Primera vez: el correo sale del campo de registro (queda fijo mientras haya un PIN en curso)
+            if (correoEsNuevo && !$("inputCorreo").disabled) {
+                const escrito = $("inputCorreo").value.trim().toLowerCase();
+                if (!FORMATO_CORREO.test(escrito)) {
+                    mostrarEstado("Escribe un correo válido, por ejemplo nombre@gmail.com.", "error");
+                    return;
+                }
+                if (escrito !== correoActual) pinActual = null; // correo distinto: PIN nuevo
+                correoActual = escrito;
+            }
+
+            const correo = correoActual;
             if (!correo) {
                 mostrarEstado("No hay un correo registrado para este nombre.", "error");
                 return;
@@ -715,8 +768,9 @@
             tiempoUltimoEnvio = ahora;
             mostrarEstado(`PIN enviado a ${ocultarCorreo(correo)} ✅ (revisa también Spam)`, "success");
 
-            // Bloquear el selector mientras haya un PIN en curso
+            // Bloquear el selector (y el correo nuevo) mientras haya un PIN en curso
             $("participanteSelect").disabled = true;
+            $("inputCorreo").disabled = true;
             $("btnCambiar").classList.remove("hidden");
             $("zonaValidacion").classList.remove("hidden");
             btnSolicitar.classList.add("hidden");
@@ -758,9 +812,14 @@
             pinActual = null;
             pinUsuario = "";
             usuarioValidado = "";
+            correoActual = "";
+            correoEsNuevo = false;
             clearInterval(temporizador);
             $("participanteSelect").disabled = false;
             $("participanteSelect").value = "";
+            $("zonaRegistro").classList.add("hidden");
+            $("inputCorreo").disabled = false;
+            $("inputCorreo").value = "";
             $("btnSolicitar").classList.remove("hidden");
             $("btnSolicitar").disabled = false;
             $("btnReenviar").classList.add("hidden");
@@ -787,8 +846,9 @@
             if (pinIngresado === pinActual) {
                 clearInterval(temporizador);
                 pinActual = null; // un PIN usado no se puede reutilizar
-                ["zonaValidacion", "msjEstado", "btnReenviar", "btnCambiar"].forEach(id => $(id).classList.add("hidden"));
+                ["zonaValidacion", "msjEstado", "btnReenviar", "btnCambiar", "zonaRegistro"].forEach(id => $(id).classList.add("hidden"));
                 usuarioValidado = usuarioActual;
+                if (correoEsNuevo) guardarCorreoNuevo();
                 $("nombreConfirmado").innerText = usuarioValidado;
                 $("zonaRegalo").classList.remove("hidden");
                 cargarDeseo();
@@ -798,13 +858,25 @@
             }
         }
 
+        // El correo nuevo se guarda solo después de validar el PIN (así sabemos que el correo es real y suyo).
+        // Las reglas de Firestore solo permiten crearlo una vez: después ya no se puede cambiar desde la página.
+        async function guardarCorreoNuevo() {
+            try {
+                await setDoc(doc(db, "correos", usuarioValidado), { correo: correoActual, creado: serverTimestamp() });
+                correoEsNuevo = false;
+            } catch (error) {
+                console.error("Error de Firestore:", error);
+                mostrarEstado(`Entraste, pero no se pudo guardar tu correo. ${explicarErrorFirebase(error)} Avísale al organizador.`, "error", "msjDeseo");
+            }
+        }
+
         // 7. DESEO DE REGALO EN FIRESTORE (colección "deseos", un documento por nombre)
         const MAX_DESEO = 200;
 
         // Firestore devuelve códigos como "permission-denied"; los traducimos a algo entendible
         function explicarErrorFirebase(error) {
             if (error && error.code === "permission-denied") {
-                return "La base de datos no lo permitió (puede que el sorteo ya se haya hecho).";
+                return "La base de datos no lo permitió.";
             }
             if (error && error.code === "unavailable") {
                 return "Sin conexión con la base de datos. Revisa tu internet.";
@@ -924,10 +996,9 @@
             return null;
         }
 
-        // Nombre bonito para el correo: el texto de la opción del <select> ("Familiar 2" en vez de "Familiar2")
+        // Nombre para mostrar en el correo (hoy es el mismo de PARTICIPANTES)
         function nombreVisible(clave) {
-            const opcion = [...$("participanteSelect").options].find(o => o.value === clave);
-            return opcion ? opcion.text : clave;
+            return clave;
         }
 
         const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
@@ -964,17 +1035,31 @@
 
             btn.disabled = true;
             $("btnReintentar").classList.add("hidden");
-            mostrarEstado("Leyendo los deseos…", "success", "msjSorteo");
+            mostrarEstado("Leyendo correos y deseos…", "success", "msjSorteo");
 
-            const nombres = Object.keys(correos);
+            const nombres = [...PARTICIPANTES];
+            const correosSorteo = {};
             const deseos = {};
             for (const nombre of nombres) {
+                try {
+                    correosSorteo[nombre] = await buscarCorreo(nombre);
+                } catch (error) {
+                    correosSorteo[nombre] = "";
+                }
                 try {
                     const d = await getDoc(doc(db, "deseos", nombre));
                     deseos[nombre] = d.exists() ? d.data().deseo : "";
                 } catch (error) {
                     deseos[nombre] = "";
                 }
+            }
+
+            // Sin correo no hay cómo avisarle a esa persona: no se hace el sorteo hasta que todos se registren
+            const sinCorreo = nombres.filter(nombre => !correosSorteo[nombre]);
+            if (sinCorreo.length > 0) {
+                mostrarEstado(`Todavía no han registrado su correo: ${sinCorreo.join(", ")}. Pídeles que entren a la página una vez.`, "error", "msjSorteo");
+                btn.disabled = false;
+                return;
             }
 
             const asignaciones = generarAsignaciones(nombres);
@@ -985,7 +1070,7 @@
             }
 
             correosPendientes = nombres.map(nombre => ({
-                to_email:      correos[nombre],
+                to_email:      correosSorteo[nombre],
                 to_name:       nombreVisible(nombre),
                 amigo:         nombreVisible(asignaciones[nombre]),
                 deseo:         deseos[asignaciones[nombre]] || "Todavía no escribió su deseo 🙈",
@@ -1042,6 +1127,14 @@
 
         // 8. BOTONES (con addEventListener: en un <script type="module"> las funciones no son globales,
         //    así que onclick="" no las encontraría)
+        // Opciones del selector a partir de PARTICIPANTES
+        for (const nombre of PARTICIPANTES) {
+            $("participanteSelect").add(new Option(nombre, nombre));
+        }
+        $("participanteSelect").addEventListener("change", revisarRegistro);
+        $("inputCorreo").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") gestionarPIN();
+        });
         $("btnSorteo").addEventListener("click", hacerSorteo);
         $("btnReintentar").addEventListener("click", reintentarCorreos);
         $("btnGuardarDeseo").addEventListener("click", guardarDeseo);

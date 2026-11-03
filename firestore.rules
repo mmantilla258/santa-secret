@@ -37,6 +37,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // correos/{nombre} = { correo, creado } — cada participante lo registra la primera vez que entra.
+    // Solo se puede CREAR una vez; nadie puede cambiarlo ni borrarlo desde la página
+    // (si alguien se equivocó, el organizador lo corrige o borra desde la consola de Firebase).
+    match /correos/{nombre} {
+      allow get: if nombreValido(nombre);
+      allow list, update, delete: if false;
+      allow create: if nombreValido(nombre)
+        && request.resource.data.keys().hasOnly(['correo', 'creado'])
+        && request.resource.data.correo is string
+        && request.resource.data.correo.size() <= 100
+        && request.resource.data.correo.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && request.resource.data.creado == request.time;
+    }
+
     // config/sorteo = { realizado: true, fecha } — lo escribe la página al hacer el sorteo REAL,
     // y solo se permite desde la fecha del sorteo (antes de eso, los sorteos son de prueba y no guardan nada)
     match /config/{docId} {
