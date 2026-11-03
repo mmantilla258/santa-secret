@@ -107,6 +107,9 @@
         }
         .cuenta b { display: block; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
         .cuenta span { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--suave); }
+        .datos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .datos span { padding: 8px; border-radius: 12px; font-size: 12px; color: var(--suave); background: rgba(242, 193, 78, 0.08); }
+        .datos strong { display: block; margin-top: 2px; font-size: 15px; font-weight: 600; color: var(--oro); }
 
         /* ---------- Formularios ---------- */
         .etiqueta { display: block; text-align: left; margin: 4px 2px 6px; font-size: 14px; font-weight: 600; }
@@ -243,6 +246,10 @@
                 <div><b id="cdMin">–</b><span>min</span></div>
                 <div><b id="cdSeg">–</b><span>seg</span></div>
             </div>
+            <div class="datos">
+                <span>💰 Presupuesto<strong id="txtPresupuesto"></strong></span>
+                <span>🎄 Entrega<strong id="txtEntrega"></strong></span>
+            </div>
         </section>
 
     <div class="card">
@@ -322,16 +329,17 @@
 
         // 2. CORREOS DE LOS PARTICIPANTES
         //    OJO: el repositorio es público; lo que pongas aquí y subas a GitHub lo puede ver cualquiera.
-        //    Cuando se integre Firebase, estos correos se moverán a Firestore.
+        //    PRUEBA INTERNA: Familiar2..8 usan alias "+" de Gmail que llegan a la bandeja de Miguel.
+        //    Antes de invitar a la familia, cambiar por los nombres y correos reales (aquí y en el <select>).
         const correos = {
             "Miguel":    "mmantilla258@gmail.com",
-            "Familiar2": "familiar2@ejemplo.com",
-            "Familiar3": "familiar3@ejemplo.com",
-            "Familiar4": "familiar4@ejemplo.com",
-            "Familiar5": "familiar5@ejemplo.com",
-            "Familiar6": "familiar6@ejemplo.com",
-            "Familiar7": "familiar7@ejemplo.com",
-            "Familiar8": "familiar8@ejemplo.com"
+            "Familiar2": "mmantilla258+familiar2@gmail.com",
+            "Familiar3": "mmantilla258+familiar3@gmail.com",
+            "Familiar4": "mmantilla258+familiar4@gmail.com",
+            "Familiar5": "mmantilla258+familiar5@gmail.com",
+            "Familiar6": "mmantilla258+familiar6@gmail.com",
+            "Familiar7": "mmantilla258+familiar7@gmail.com",
+            "Familiar8": "mmantilla258+familiar8@gmail.com"
         };
 
         // 3. CONSTANTES Y ESTADO
@@ -342,6 +350,9 @@
         // Si cambias esta fecha, cámbiala también en firestore.rules (timestamp.value) y en los textos del HTML.
         const FECHA_SORTEO      = new Date("2026-11-08T08:00:00-05:00");
         const plazoCerrado      = () => Date.now() >= FECHA_SORTEO.getTime();
+        // Se muestran en la página y se enviarán en el correo del sorteo ({{presupuesto}}, {{fecha_entrega}})
+        const PRESUPUESTO       = "$250.000 COP";
+        const FECHA_ENTREGA     = "24 de diciembre";
 
         let pinActual = null;
         let pinUsuario = "";        // a quién pertenece el PIN actual
@@ -613,6 +624,8 @@
 
         actualizarCuenta();
         temporizadorCuenta = setInterval(actualizarCuenta, 1000);
+        $("txtPresupuesto").innerText = PRESUPUESTO;
+        $("txtEntrega").innerText = FECHA_ENTREGA;
     </script>
 </body>
 </html>

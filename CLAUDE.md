@@ -72,7 +72,9 @@ Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostra
      `index.html`, `timestamp.value(1794142800000)` en `firestore.rules`, y textos del HTML: cambiar los tres juntos).
      Desde esa hora ya no se pueden editar deseos. La página muestra una cuenta regresiva.
    - No hay servidor: el sorteo no se ejecuta solo; Miguel lo lanza desde la página a esa hora.
-   - Pendiente: presupuesto y fecha de entrega de los regalos (para la plantilla del sorteo).
+   - Presupuesto **$250.000 COP** y entrega el **24 de diciembre** (`PRESUPUESTO` y `FECHA_ENTREGA` en `index.html`).
+   - **Fase de prueba interna:** Familiar2..8 usan alias de Gmail (`mmantilla258+familiarN@gmail.com`) que llegan
+     a la bandeja de Miguel. Antes de invitar a la familia, cambiar nombres y correos reales (en `correos` y en el `<select>`).
 5. **Sorteo:**
    - Permutación aleatoria donde nadie se saca a sí mismo (derangement). Usar Fisher-Yates con
      `crypto.getRandomValues` y reintentar hasta cumplir las restricciones.
