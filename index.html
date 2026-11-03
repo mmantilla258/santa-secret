@@ -441,6 +441,8 @@
         .excede { background: rgba(240, 160, 160, 0.08); border: 1px solid rgba(240, 160, 160, 0.35); }
         .excede span, .excede small { color: var(--error); }
 
+        .aviso-cambios { margin: 16px 0 0; text-align: center; font-size: 13px; font-weight: 600; color: var(--oro-claro); }
+
         /* ---------- Botones ---------- */
         button {
             margin-top: 14px;
@@ -698,6 +700,7 @@
                     <div id="listaCombos"></div>
                 </div>
 
+                <p id="avisoCambios" class="aviso-cambios hidden" data-i18n="cambiosSinGuardar">● Tienes cambios sin guardar</p>
                 <button id="btnGuardarDeseo" disabled data-i18n="btnGuardarDeseo">Guardar deseo</button>
                 <p id="msjDeseo" class="hidden"></p>
                 <p class="nota" id="notaPlazo" data-i18n="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
@@ -808,6 +811,8 @@
                 pie: "Hecho con cariño para la familia",
                 recordadoNota: "Te recordaremos en este celular durante 7 días.",
                 cerrarSesion: "Cerrar sesión",
+                cambiosSinGuardar: "● Tienes cambios sin guardar",
+                confirmSalirSinGuardar: "Tienes cambios sin guardar en tu deseo. ¿Salir de todas formas?",
                 progresoDeseos: "🎁 Deseos escritos: {n} de {total}",
                 progresoCompleto: "🎉 ¡Los {total} ya escribieron su deseo!",
                 errConsultarCorreo: "No se pudo consultar tu correo. {detalle}",
@@ -905,6 +910,8 @@
                 pie: "Made with love for the family",
                 recordadoNota: "We'll remember you on this device for 7 days.",
                 cerrarSesion: "Sign out",
+                cambiosSinGuardar: "● You have unsaved changes",
+                confirmSalirSinGuardar: "You have unsaved changes to your wish. Sign out anyway?",
                 progresoDeseos: "🎁 Wishes written: {n} of {total}",
                 progresoCompleto: "🎉 All {total} have written their wish!",
                 errConsultarCorreo: "We couldn't look up your email. {detalle}",
@@ -1002,6 +1009,8 @@
                 pie: "Met liefde gemaakt voor de familie",
                 recordadoNota: "We onthouden je 7 dagen op dit apparaat.",
                 cerrarSesion: "Uitloggen",
+                cambiosSinGuardar: "● Je hebt wijzigingen die nog niet zijn opgeslagen",
+                confirmSalirSinGuardar: "Je wens heeft wijzigingen die nog niet zijn opgeslagen. Toch uitloggen?",
                 progresoDeseos: "🎁 Wensen ingevuld: {n} van {total}",
                 progresoCompleto: "🎉 Alle {total} hebben hun wens ingevuld!",
                 errConsultarCorreo: "We konden je e-mailadres niet opzoeken. {detalle}",
@@ -1360,6 +1369,8 @@
         }
 
         function cerrarSesion() {
+            if (hayCambios && !confirm(t("confirmSalirSinGuardar"))) return;
+            limpiarCambios();
             borrarSesion();
             cambiarUsuario();
             $("zonaRegalo").classList.add("hidden");
@@ -1421,6 +1432,17 @@
         let seleccion = new Set();        // opciones marcadas ☑ para armar un combo
         let pestanaAbierta = {};          // { índice: "link" | "precio" }
         let edicionBloqueada = true;
+        let hayCambios = false;           // true si el deseo cambió y aún no se guardó
+
+        function marcarCambios() {
+            hayCambios = true;
+            $("avisoCambios").classList.remove("hidden");
+        }
+
+        function limpiarCambios() {
+            hayCambios = false;
+            $("avisoCambios").classList.add("hidden");
+        }
 
         const formatoPesos = new Intl.NumberFormat("es-CO");
         const pesos = (valor) => "$ " + formatoPesos.format(valor);
@@ -1474,6 +1496,7 @@
             }
             seleccion = new Set();
             pestanaAbierta = {};
+            limpiarCambios();
             actualizarPlazoDeseo();
         }
 
@@ -1531,7 +1554,7 @@
                 texto.placeholder = t("opcionPlaceholder");
                 texto.value = op.texto;
                 texto.disabled = edicionBloqueada;
-                texto.addEventListener("input", () => { op.texto = texto.value; });
+                texto.addEventListener("input", () => { op.texto = texto.value; marcarCambios(); });
 
                 // Mini pestañas: 🔗 Link y 💲 Precio (se marcan con ✓ si tienen dato)
                 const pestanas = document.createElement("div");
@@ -1568,7 +1591,7 @@
                     link.placeholder = "https://…";
                     link.value = op.link;
                     link.disabled = edicionBloqueada;
-                    link.addEventListener("input", () => { op.link = link.value.trim(); marcarPestana("link"); });
+                    link.addEventListener("input", () => { op.link = link.value.trim(); marcarPestana("link"); marcarCambios(); });
                     tarjeta.append(link);
                 }
                 if (pestanaAbierta[i] === "precio") {
@@ -1584,6 +1607,7 @@
                         op.precio = digitos ? Number(digitos) : null;
                         precio.value = digitos ? pesos(op.precio) : "";
                         marcarPestana("precio");
+                        marcarCambios();
                         pintarSuma();
                         pintarCombos();
                     });
@@ -1602,6 +1626,7 @@
                 return;
             }
             opciones.push({ texto: "", link: "", precio: null });
+            marcarCambios();
             pintarOpciones();
             const tarjetas = $("listaOpciones").children;
             tarjetas[tarjetas.length - 1].querySelector(".opcion-texto").focus();
@@ -1610,6 +1635,7 @@
         // Al borrar una opción se corren los números de las siguientes y se ajustan los combos
         function borrarOpcion(indice) {
             opciones.splice(indice, 1);
+            marcarCambios();
             const correr = (i) => (i > indice ? i - 1 : i);
             seleccion = new Set([...seleccion].filter(i => i !== indice).map(correr));
             combos = combos
@@ -1675,6 +1701,7 @@
                 return;
             }
             combos.push(indices);
+            marcarCambios();
             seleccion = new Set();
             $("msjDeseo").className = "hidden";
             pintarOpciones();
@@ -1702,7 +1729,7 @@
                     borrar.textContent = "🗑";
                     borrar.title = t("borrarCombo", { n: k + 1 });
                     borrar.setAttribute("aria-label", borrar.title);
-                    borrar.addEventListener("click", () => { combos.splice(k, 1); pintarCombos(); });
+                    borrar.addEventListener("click", () => { combos.splice(k, 1); marcarCambios(); pintarCombos(); });
                     fila.append(borrar);
                 }
                 lista.append(fila);
@@ -1746,6 +1773,7 @@
                     actualizado: serverTimestamp()
                 });
                 mostrarEstado("deseoGuardado", "success", "msjDeseo");
+                limpiarCambios();
                 actualizarProgreso();
             } catch (error) {
                 console.error("Error de Firestore:", error);
@@ -1968,6 +1996,11 @@
             if (e.key === "Enter") gestionarPIN();
         });
         $("btnSalir").addEventListener("click", cerrarSesion);
+        window.addEventListener("beforeunload", (e) => {
+            if (!hayCambios) return;
+            e.preventDefault();
+            e.returnValue = "";   // los navegadores muestran su propio mensaje de "¿Salir del sitio?"
+        });
         $("btnSorteo").addEventListener("click", hacerSorteo);
         $("btnReintentar").addEventListener("click", reintentarCorreos);
         $("btnGuardarDeseo").addEventListener("click", guardarDeseo);
