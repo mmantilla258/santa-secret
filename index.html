@@ -104,7 +104,7 @@
             position: relative;
             max-width: 520px;
             margin: 34px auto 0;
-            padding: 0 46px;
+            padding: 0 30px;
         }
         /* Cinta roja que baja de la guirnalda hasta el moño */
         .cinta {
@@ -141,7 +141,7 @@
             50% { transform: rotate(0.8deg); }
         }
         .paspartu {
-            padding: 10px 10px 6px;
+            padding: 8px 8px 4px;
             background: #f7f0e1;
             box-shadow: inset 0 0 12px rgba(120, 90, 40, 0.25);
         }
@@ -163,13 +163,13 @@
         .esfera {
             position: absolute;
             top: -44px;
-            width: 30px;
+            width: 24px;
             z-index: 0;
             transform-origin: 50% 0;
             animation: mecer-esfera 5s ease-in-out infinite;
         }
-        .esfera-izq { left: 6px; }
-        .esfera-der { right: 6px; top: -44px; height: auto; animation-delay: -2.5s; }
+        .esfera-izq { left: 3px; }
+        .esfera-der { right: 3px; animation-delay: -2.5s; }
         @keyframes mecer-esfera { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-4deg); } }
 
         @media (prefers-reduced-motion: reduce) {
@@ -472,7 +472,7 @@
                     <circle cx="40" cy="22" r="6" fill="#a51a26"/>
                 </svg>
                 <div class="paspartu">
-                    <img src="family.jpeg" alt="Foto de la familia" width="1024" height="683" fetchpriority="high">
+                    <img src="family.jpeg?v=2" alt="Foto de la familia" width="1600" height="1337" fetchpriority="high">
                     <p class="leyenda">Navidad en familia · 2026</p>
                 </div>
             </figure>
