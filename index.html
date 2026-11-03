@@ -319,6 +319,19 @@
             box-shadow: 0 0 0 2px rgba(240, 217, 162, 0.35);
         }
 
+        /* ---------- Progreso de deseos ---------- */
+        .progreso { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borde-suave); }
+        .puntos { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+        .punto {
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--borde);
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+        .punto.lleno { background: var(--oro); border-color: var(--oro-claro); box-shadow: 0 0 8px rgba(214, 178, 106, 0.6); }
+        #txtProgreso { margin: 0; font-size: 13px; color: var(--suave); }
+
         /* ---------- Formularios ---------- */
         .etiqueta { display: block; margin: 16px 0 6px; font-size: 13px; font-weight: 500; color: var(--suave); }
         select, input, textarea, button {
@@ -564,6 +577,11 @@
                 <div><small data-i18n="datoPresupuesto">Presupuesto</small><strong id="txtPresupuesto"></strong></div>
                 <div><small data-i18n="datoEntrega">Entrega</small><strong data-i18n="fechaEntrega">24 de diciembre</strong></div>
             </div>
+            <!-- Cuántos ya escribieron su deseo (solo el número, nunca quiénes ni qué) -->
+            <div class="progreso hidden" id="progresoDeseos">
+                <div class="puntos" id="puntosDeseos" aria-hidden="true"></div>
+                <p id="txtProgreso"></p>
+            </div>
         </section>
 
         <section class="card">
@@ -686,6 +704,8 @@
                 wpp: "Invitar a la familia por WhatsApp",
                 mensajeWpp: "🎅 ¡Ya está abierto el Secret Santa 2026! Entra, elige tu nombre y registra tu deseo de regalo 🎁",
                 pie: "Hecho con cariño para la familia",
+                progresoDeseos: "🎁 Deseos escritos: {n} de {total}",
+                progresoCompleto: "🎉 ¡Los {total} ya escribieron su deseo!",
                 errConsultarCorreo: "No se pudo consultar tu correo. {detalle}",
                 selNombre: "Por favor, selecciona tu nombre de la lista.",
                 correoInvalido: "Escribe un correo válido, por ejemplo nombre@gmail.com.",
@@ -757,6 +777,8 @@
                 wpp: "Invite the family on WhatsApp",
                 mensajeWpp: "🎅 Secret Santa 2026 is open! Go in, choose your name and add your gift wish 🎁",
                 pie: "Made with love for the family",
+                progresoDeseos: "🎁 Wishes written: {n} of {total}",
+                progresoCompleto: "🎉 All {total} have written their wish!",
                 errConsultarCorreo: "We couldn't look up your email. {detalle}",
                 selNombre: "Please select your name from the list.",
                 correoInvalido: "Enter a valid email, for example name@gmail.com.",
@@ -828,6 +850,8 @@
                 wpp: "Familie uitnodigen via WhatsApp",
                 mensajeWpp: "🎅 Secret Santa 2026 is geopend! Ga naar de pagina, kies je naam en vul je cadeauwens in 🎁",
                 pie: "Met liefde gemaakt voor de familie",
+                progresoDeseos: "🎁 Wensen ingevuld: {n} van {total}",
+                progresoCompleto: "🎉 Alle {total} hebben hun wens ingevuld!",
                 errConsultarCorreo: "We konden je e-mailadres niet opzoeken. {detalle}",
                 selNombre: "Kies je naam uit de lijst.",
                 correoInvalido: "Vul een geldig e-mailadres in, bijvoorbeeld naam@gmail.com.",
@@ -903,6 +927,7 @@
             }
             actualizarCuenta();
             actualizarWhatsApp();
+            pintarProgreso();
             if (usuarioValidado) actualizarPlazoDeseo();
             if (!$("panelOrganizador").classList.contains("hidden")) mostrarPanelOrganizador();
         }
@@ -1247,6 +1272,7 @@
                     actualizado: serverTimestamp()
                 });
                 mostrarEstado("deseoGuardado", "success", "msjDeseo");
+                actualizarProgreso();
             } catch (error) {
                 console.error("Error de Firestore:", error);
                 mostrarEstado("errGuardarDeseo", "error", "msjDeseo", { detalle: () => explicarErrorFirebase(error) });
@@ -1471,6 +1497,31 @@
             $("btnWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(mensajeWpp);
         }
 
+        // 9b. PROGRESO DE DESEOS: cuenta cuántos participantes ya escribieron su deseo.
+        //     Lee un documento por participante (las reglas no permiten listar la colección).
+        let deseosEscritos = null;
+
+        async function actualizarProgreso() {
+            try {
+                const docs = await Promise.all(PARTICIPANTES.map(nombre => getDoc(doc(db, "deseos", nombre))));
+                deseosEscritos = docs.filter(d => d.exists() && d.data().deseo).length;
+                pintarProgreso();
+            } catch (error) {
+                console.error("Error de Firestore (progreso):", error);
+            }
+        }
+
+        // Puntos llenos de izquierda a derecha: muestran cuántos, no quiénes
+        function pintarProgreso() {
+            if (deseosEscritos === null) return;
+            const total = PARTICIPANTES.length;
+            $("puntosDeseos").innerHTML = Array.from({ length: total },
+                (_, i) => `<span class="punto${i < deseosEscritos ? " lleno" : ""}"></span>`).join("");
+            $("txtProgreso").innerText = t(deseosEscritos === total ? "progresoCompleto" : "progresoDeseos",
+                { n: deseosEscritos, total });
+            $("progresoDeseos").classList.remove("hidden");
+        }
+
         // 10. CUENTA REGRESIVA AL SORTEO
         let temporizadorCuenta = null;
 
@@ -1499,6 +1550,7 @@
             b.addEventListener("click", () => cambiarIdioma(b.dataset.idioma));
         });
         aplicarIdioma();
+        actualizarProgreso();
     </script>
 </body>
 </html>
