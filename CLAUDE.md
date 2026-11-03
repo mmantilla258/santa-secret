@@ -74,8 +74,15 @@ Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostra
    - No hay servidor: el sorteo no se ejecuta solo; Miguel lo lanza desde la página a esa hora.
    - Presupuesto **$250.000 COP** y entrega el **24 de diciembre** (`PRESUPUESTO` y `FECHA_ENTREGA` en `index.html`).
    - **Fase de prueba interna:** Familiar2..8 usan alias de Gmail (`mmantilla258+familiarN@gmail.com`) que llegan
-     a la bandeja de Miguel. Antes de invitar a la familia, cambiar nombres y correos reales (en `correos` y en el `<select>`).
-5. **Sorteo:**
+     a la bandeja del organizador. Antes de invitar a la familia, cambiar nombres y correos reales (en `correos` y en el `<select>`).
+   - El participante 1 (correo `mmantilla258@gmail.com`, el organizador) aparece como **Alejandro** (`ORGANIZADOR`).
+5. ✅ **Sorteo** (implementado; panel del organizador visible solo para `ORGANIZADOR`):
+   - Antes de `FECHA_SORTEO` es **modo prueba** (repetible, no escribe en Firebase). Desde esa hora es real y
+     escribe `config/sorteo = { realizado: true, fecha }` (las reglas solo lo permiten desde la fecha).
+   - Las asignaciones **no se guardan** en Firestore: solo viajan en los correos (8 envíos por sorteo).
+   - `PAREJAS_EXCLUIDAS` (ambos sentidos): Alejandro no puede dar ni recibir de Familiar2, 3, 4 y 5.
+     Al poner los nombres reales, actualizar también esta lista.
+   Requisitos originales:
    - Permutación aleatoria donde nadie se saca a sí mismo (derangement). Usar Fisher-Yates con
      `crypto.getRandomValues` y reintentar hasta cumplir las restricciones.
    - Soportar una lista opcional de parejas excluidas (por ejemplo, esposos que no se regalan entre sí).

@@ -257,7 +257,7 @@
         <select id="participanteSelect">
             <option value="">Selecciona tu nombre</option>
             <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
-            <option value="Miguel">Miguel</option>
+            <option value="Alejandro">Alejandro</option>
             <option value="Familiar2">Familiar 2</option>
             <option value="Familiar3">Familiar 3</option>
             <option value="Familiar4">Familiar 4</option>
@@ -289,7 +289,15 @@
             <button id="btnGuardarDeseo" disabled>💾 Guardar deseo</button>
             <p id="msjDeseo" class="hidden"></p>
             <p class="nota" id="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
-            <!-- Aquí irá el resultado del sorteo -->
+        </div>
+
+        <!-- Solo se muestra al ORGANIZADOR. Nunca muestra quién le regala a quién. -->
+        <div id="panelOrganizador" class="seccion hidden">
+            <p class="saludo">🎲 Panel del organizador</p>
+            <p class="texto-suave" id="txtModoSorteo"></p>
+            <button id="btnSorteo">🎲 Hacer el sorteo</button>
+            <button id="btnReintentar" class="secundario hidden">🔁 Reintentar correos que fallaron</button>
+            <p id="msjSorteo" class="hidden"></p>
         </div>
     </div>
 
@@ -329,10 +337,10 @@
 
         // 2. CORREOS DE LOS PARTICIPANTES
         //    OJO: el repositorio es público; lo que pongas aquí y subas a GitHub lo puede ver cualquiera.
-        //    PRUEBA INTERNA: Familiar2..8 usan alias "+" de Gmail que llegan a la bandeja de Miguel.
+        //    PRUEBA INTERNA: Familiar2..8 usan alias "+" de Gmail que llegan a la bandeja de Alejandro (organizador).
         //    Antes de invitar a la familia, cambiar por los nombres y correos reales (aquí y en el <select>).
         const correos = {
-            "Miguel":    "mmantilla258@gmail.com",
+            "Alejandro": "mmantilla258@gmail.com",
             "Familiar2": "mmantilla258+familiar2@gmail.com",
             "Familiar3": "mmantilla258+familiar3@gmail.com",
             "Familiar4": "mmantilla258+familiar4@gmail.com",
@@ -353,6 +361,16 @@
         // Se muestran en la página y se enviarán en el correo del sorteo ({{presupuesto}}, {{fecha_entrega}})
         const PRESUPUESTO       = "$250.000 COP";
         const FECHA_ENTREGA     = "24 de diciembre";
+
+        // Quién puede hacer el sorteo (debe coincidir con una clave de "correos")
+        const ORGANIZADOR       = "Alejandro";
+        // Parejas que no pueden regalarse entre sí, en ningún sentido (usar las claves de "correos")
+        const PAREJAS_EXCLUIDAS = [
+            ["Alejandro", "Familiar2"],
+            ["Alejandro", "Familiar3"],
+            ["Alejandro", "Familiar4"],
+            ["Alejandro", "Familiar5"]
+        ];
 
         let pinActual = null;
         let pinUsuario = "";        // a quién pertenece el PIN actual
@@ -502,6 +520,7 @@
                 $("nombreConfirmado").innerText = usuarioValidado;
                 $("zonaRegalo").classList.remove("hidden");
                 cargarDeseo();
+                if (usuarioValidado === ORGANIZADOR) mostrarPanelOrganizador();
             } else {
                 mostrarEstado("PIN incorrecto. Intenta nuevamente.", "error");
             }
@@ -580,8 +599,179 @@
             $("contadorDeseo").innerText = `${$("inputDeseo").value.length}/${MAX_DESEO}`;
         }
 
+        // 7b. SORTEO (solo el organizador)
+        //     Regla de oro: los resultados NUNCA se muestran en pantalla ni en console.log; solo viajan por correo.
+
+        // Número aleatorio entre 0 y max-1 sin sesgo, con el generador criptográfico
+        function enteroAleatorio(max) {
+            const limite = Math.floor(2 ** 32 / max) * max;
+            let x;
+            do { x = crypto.getRandomValues(new Uint32Array(1))[0]; } while (x >= limite);
+            return x % max;
+        }
+
+        // Fisher-Yates: devuelve una copia mezclada de la lista
+        function mezclar(lista) {
+            const copia = [...lista];
+            for (let i = copia.length - 1; i > 0; i--) {
+                const j = enteroAleatorio(i + 1);
+                [copia[i], copia[j]] = [copia[j], copia[i]];
+            }
+            return copia;
+        }
+
+        function parejaExcluida(a, b) {
+            return PAREJAS_EXCLUIDAS.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+        }
+
+        // Devuelve { quienRegala: aQuien } o null si las exclusiones lo hacen imposible
+        function generarAsignaciones(nombres) {
+            // 1) Preferido: un solo ciclo A→B→C→…→A (nadie queda en un par cerrado ni se saca a sí mismo)
+            for (let intento = 0; intento < 5000; intento++) {
+                const orden = mezclar(nombres);
+                const asignaciones = {};
+                let valido = true;
+                for (let i = 0; i < orden.length; i++) {
+                    const de = orden[i];
+                    const para = orden[(i + 1) % orden.length];
+                    if (parejaExcluida(de, para)) { valido = false; break; }
+                    asignaciones[de] = para;
+                }
+                if (valido) return asignaciones;
+            }
+            // 2) Respaldo: cualquier reparto donde nadie se saque a sí mismo y se respeten las exclusiones
+            for (let intento = 0; intento < 5000; intento++) {
+                const destinos = mezclar(nombres);
+                const asignaciones = {};
+                const valido = nombres.every((de, i) => {
+                    asignaciones[de] = destinos[i];
+                    return destinos[i] !== de && !parejaExcluida(de, destinos[i]);
+                });
+                if (valido) return asignaciones;
+            }
+            return null;
+        }
+
+        // Nombre bonito para el correo: el texto de la opción del <select> ("Familiar 2" en vez de "Familiar2")
+        function nombreVisible(clave) {
+            const opcion = [...$("participanteSelect").options].find(o => o.value === clave);
+            return opcion ? opcion.text : clave;
+        }
+
+        const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
+        let correosPendientes = [];   // envíos que fallaron, solo en memoria (para reintentar)
+
+        function mostrarPanelOrganizador() {
+            $("txtModoSorteo").innerText = plazoCerrado()
+                ? "Ya es el día: este es el sorteo REAL. Cada participante recibirá su amigo secreto por correo."
+                : "🧪 Modo prueba (antes del domingo 8, 8:00 a. m.): puedes repetirlo; no se guarda nada en Firebase. Cada prueba gasta 8 correos de EmailJS.";
+            $("panelOrganizador").classList.remove("hidden");
+        }
+
+        async function hacerSorteo() {
+            if (usuarioValidado !== ORGANIZADOR) return;
+            const esReal = plazoCerrado();
+            const btn = $("btnSorteo");
+
+            // En el sorteo real, avisar si ya se había hecho
+            if (esReal) {
+                try {
+                    const config = await getDoc(doc(db, "config", "sorteo"));
+                    if (config.exists() && config.data().realizado === true &&
+                        !confirm("⚠️ El sorteo REAL ya se hizo. Si lo repites, todos recibirán un amigo secreto NUEVO. ¿Seguro?")) {
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Error de Firestore:", error);
+                }
+            }
+            const aviso = esReal
+                ? "¿Hacer el sorteo REAL y enviar los correos a toda la familia?"
+                : "¿Hacer un sorteo de PRUEBA? Se enviarán 8 correos.";
+            if (!confirm(aviso)) return;
+
+            btn.disabled = true;
+            $("btnReintentar").classList.add("hidden");
+            mostrarEstado("Leyendo los deseos…", "success", "msjSorteo");
+
+            const nombres = Object.keys(correos);
+            const deseos = {};
+            for (const nombre of nombres) {
+                try {
+                    const d = await getDoc(doc(db, "deseos", nombre));
+                    deseos[nombre] = d.exists() ? d.data().deseo : "";
+                } catch (error) {
+                    deseos[nombre] = "";
+                }
+            }
+
+            const asignaciones = generarAsignaciones(nombres);
+            if (!asignaciones) {
+                mostrarEstado("No se pudo armar el sorteo con esas parejas excluidas. Revisa PAREJAS_EXCLUIDAS.", "error", "msjSorteo");
+                btn.disabled = false;
+                return;
+            }
+
+            correosPendientes = nombres.map(nombre => ({
+                to_email:      correos[nombre],
+                to_name:       nombreVisible(nombre),
+                amigo:         nombreVisible(asignaciones[nombre]),
+                deseo:         deseos[asignaciones[nombre]] || "Todavía no escribió su deseo 🙈",
+                presupuesto:   PRESUPUESTO,
+                fecha_entrega: FECHA_ENTREGA
+            }));
+
+            await enviarCorreosSorteo();
+
+            // Marcar el sorteo real como hecho (bloquea los deseos; las reglas solo lo permiten desde la fecha)
+            if (esReal) {
+                try {
+                    await setDoc(doc(db, "config", "sorteo"), { realizado: true, fecha: serverTimestamp() });
+                } catch (error) {
+                    console.error("Error de Firestore:", error);
+                }
+            }
+            btn.disabled = false;
+        }
+
+        // Envía los correos pendientes uno por uno; los que fallan quedan para "Reintentar"
+        async function enviarCorreosSorteo() {
+            const total = correosPendientes.length;
+            const fallidos = [];
+            for (let i = 0; i < total; i++) {
+                mostrarEstado(`Enviando correos ${i + 1}/${total}… No cierres la página.`, "success", "msjSorteo");
+                try {
+                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_SORTEO, correosPendientes[i],
+                        { limitRate: { id: "sorteo", throttle: 1500 } });
+                } catch (error) {
+                    console.error("Error de EmailJS en el sorteo:", error && error.text);
+                    fallidos.push(correosPendientes[i]);
+                }
+                await esperar(1600);
+            }
+            correosPendientes = fallidos;
+
+            if (fallidos.length === 0) {
+                mostrarEstado("¡Sorteo listo! 🎉 Todos los correos del sorteo fueron enviados.", "success", "msjSorteo");
+                $("btnReintentar").classList.add("hidden");
+            } else {
+                // Mostrar a quién no le llegó no revela el sorteo (solo el destinatario, no su amigo secreto)
+                const nombresFallidos = fallidos.map(c => c.to_name).join(", ");
+                mostrarEstado(`Fallaron ${fallidos.length} de ${total} correos (${nombresFallidos}). Pulsa "Reintentar" sin cerrar la página.`, "error", "msjSorteo");
+                $("btnReintentar").classList.remove("hidden");
+            }
+        }
+
+        async function reintentarCorreos() {
+            $("btnReintentar").disabled = true;
+            await enviarCorreosSorteo();
+            $("btnReintentar").disabled = false;
+        }
+
         // 8. BOTONES (con addEventListener: en un <script type="module"> las funciones no son globales,
         //    así que onclick="" no las encontraría)
+        $("btnSorteo").addEventListener("click", hacerSorteo);
+        $("btnReintentar").addEventListener("click", reintentarCorreos);
         $("btnGuardarDeseo").addEventListener("click", guardarDeseo);
         $("inputDeseo").addEventListener("input", actualizarContador);
         $("btnSolicitar").addEventListener("click", gestionarPIN);
