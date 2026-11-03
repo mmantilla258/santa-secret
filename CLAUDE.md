@@ -14,7 +14,9 @@ confirmación antes de decisiones que no se puedan deshacer.
   Sin API de Meta ni tokens (decidido 2026-11-02: no hay opción automática gratis sin servidor).
 - **Base de datos:** Firebase (Firestore), proyecto `santa-secret-2026-45ed4`, plan Spark. SDK modular por CDN
   fijado en `12.19.0` (`https://www.gstatic.com/firebasejs/12.19.0/firebase-*.js`) con `<script type="module">`.
-  - Datos: `deseos/{nombre}` = `{ deseo, actualizado }` · `correos/{nombre}` = `{ correo, creado }` (solo se crea una vez)
+  - Datos: `deseos/{nombre}` = `{ opciones: [{ texto, link, precio }], combos: [{ opciones: [índices] }], actualizado }`
+    (máx. 10 opciones y 20 combos; los documentos viejos `{ deseo }` se leen como "Opción 1")
+    · `correos/{nombre}` = `{ correo, creado }` (solo se crea una vez)
     · `config/sorteo` = `{ realizado, fecha }`.
   - Las reglas viven en `firestore.rules` (copia en el repo); Miguel las pega a mano en la consola de Firebase.
     Si se cambian, recordarle que las vuelva a publicar.
@@ -60,6 +62,9 @@ y (por agregar) `EMAILJS_TEMPLATE_SORTEO`. El plan gratuito tiene pocas plantill
 | PIN (`EMAILJS_TEMPLATE_ID`) | `to_email`, `to_name`, `pin`, `minutos` |
 | Sorteo (`EMAILJS_TEMPLATE_SORTEO`) | `to_email`, `to_name`, `amigo`, `deseo`, `presupuesto`, `fecha_entrega` |
 
+`deseo` llega como HTML (opciones con precio/link y combos, armado por `deseoParaCorreo` con el texto escapado):
+en la plantilla debe ir con **tres llaves** `{{{deseo}}}` para que se vean los saltos de línea y los links.
+
 Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostrar "enviado ✅" si falló.
 
 ## Hoja de ruta (en este orden)
@@ -73,7 +78,10 @@ Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostra
    - EmailJS gratuito **no permite restringir dominios**: la lista de dominios queda vacía y solo se
      mantiene desactivada la opción "Allow EmailJS API for non-browser applications".
 3. ✅ Conectar Firebase (proyecto, `firebaseConfig`, Firestore en modo producción con reglas propias).
-4. ✅ Cada usuario guarda su **deseo de regalo** (máx. 200 caracteres; editable mientras `config/sorteo.realizado != true`).
+4. ✅ Cada usuario guarda su **deseo de regalo** como **opciones** (texto + mini pestañas 🔗 Link y 💲 Precio, botón
+   "＋ Agregar otra opción") y, opcionalmente, **combos**: marca ☑ varias opciones, ve la suma contra el presupuesto
+   (aviso si se pasa, pero deja guardar) y la guarda como "Combo N". Editable mientras el plazo esté abierto.
+   El correo del sorteo lleva todas las opciones y, si hay, los combos.
    - **Fecha del sorteo: domingo 8 de noviembre de 2026, 8:00 a. m. hora de Colombia** (`FECHA_SORTEO` en
      `index.html`, `timestamp.value(1794142800000)` en `firestore.rules`, y textos del HTML: cambiar los tres juntos).
      Desde esa hora ya no se pueden editar deseos. La página muestra una cuenta regresiva.

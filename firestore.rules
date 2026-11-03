@@ -23,16 +23,23 @@ service cloud.firestore {
       return nombre.matches('^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ ]{1,30}$');
     }
 
-    // deseos/{nombre} = { deseo: texto de 1 a 200 caracteres, actualizado: hora del servidor }
+    // deseos/{nombre} = {
+    //   opciones: lista de 1 a 10 { texto, link, precio },
+    //   combos: lista de hasta 20 { opciones: [índices] },
+    //   actualizado: hora del servidor
+    // }
+    // (Las reglas no pueden revisar cada opción una por una; la página limita textos, links y precios.)
     match /deseos/{nombre} {
       allow get: if nombreValido(nombre);
       allow list: if false;              // nadie puede descargar todos los deseos de una vez
       allow create, update: if nombreValido(nombre)
         && sorteoAbierto()
-        && request.resource.data.keys().hasOnly(['deseo', 'actualizado'])
-        && request.resource.data.deseo is string
-        && request.resource.data.deseo.size() > 0
-        && request.resource.data.deseo.size() <= 200
+        && request.resource.data.keys().hasOnly(['opciones', 'combos', 'actualizado'])
+        && request.resource.data.opciones is list
+        && request.resource.data.opciones.size() >= 1
+        && request.resource.data.opciones.size() <= 10
+        && request.resource.data.combos is list
+        && request.resource.data.combos.size() <= 20
         && request.resource.data.actualizado == request.time;
       allow delete: if false;
     }

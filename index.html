@@ -374,6 +374,59 @@
         }
         .contador { display: block; text-align: right; color: var(--suave); font-size: 12px; margin-top: 4px; }
 
+        /* ---------- Opciones de regalo y combos ---------- */
+        .nota.izquierda { text-align: left; margin-top: 0; }
+        .opcion {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--borde-suave);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .opcion.marcada { border-color: var(--oro); box-shadow: 0 0 0 1px rgba(214, 178, 106, 0.25); }
+        .opcion-cabecera { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .check { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--oro-claro); }
+        .check input[type="checkbox"] { width: 18px; height: 18px; margin: 0; padding: 0; accent-color: var(--rojo); cursor: pointer; }
+        .opcion input[type="text"], .opcion input[type="url"] { padding: 11px 12px; }
+        .opcion-link, .opcion-precio { margin-top: 8px; }
+        .pestanas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .pestana {
+            width: auto;
+            margin: 0;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--suave);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--borde-suave);
+            box-shadow: none;
+        }
+        .pestana.con-dato { color: var(--oro-claro); }
+        .pestana.activa { color: var(--texto); border-color: var(--oro); background: rgba(214, 178, 106, 0.12); }
+        .pestana:hover:not(:disabled) { filter: none; transform: none; background: rgba(214, 178, 106, 0.1); }
+        .icono {
+            width: auto;
+            margin: 0;
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            box-shadow: none;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        .icono:hover:not(:disabled) { opacity: 1; filter: none; transform: none; }
+        .bloque-combos { margin-top: 18px; }
+        .suma, .combo { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+        .suma { display: flex; flex-direction: column; gap: 2px; }
+        .combo { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .combo small { display: block; margin-top: 2px; font-size: 12px; }
+        .dentro { background: rgba(108, 197, 150, 0.1); border: 1px solid rgba(108, 197, 150, 0.3); }
+        .dentro span, .dentro small { color: #cdeedb; }
+        .excede { background: rgba(240, 160, 160, 0.08); border: 1px solid rgba(240, 160, 160, 0.35); }
+        .excede span, .excede small { color: var(--error); }
+
         /* ---------- Botones ---------- */
         button {
             margin-top: 14px;
@@ -617,9 +670,20 @@
                 <p class="saludo"><span data-i18n="hola">Hola,</span> <span id="nombreConfirmado"></span> 🎄</p>
                 <p class="texto-suave" data-i18n="deseoIntro">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
 
-                <label class="etiqueta" for="inputDeseo" data-i18n="deseoLabel">Mi deseo de regalo</label>
-                <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" data-i18n-placeholder="deseoPlaceholder" disabled></textarea>
-                <small id="contadorDeseo" class="contador">0/200</small>
+                <p class="etiqueta" data-i18n="deseoLabel">Mi deseo de regalo</p>
+                <p class="nota izquierda" data-i18n="opcionesNota">Puedes poner varias opciones. Toca 🔗 Link o 💲 Precio para agregarlos.</p>
+                <!-- Las tarjetas de opciones las dibuja pintarOpciones() en el script -->
+                <div id="listaOpciones"></div>
+                <button id="btnAgregarOpcion" class="secundario" type="button" disabled data-i18n="agregarOpcion">＋ Agregar otra opción</button>
+
+                <div class="bloque-combos">
+                    <p class="etiqueta" data-i18n="combosTitulo">Combos (opcional)</p>
+                    <p class="nota izquierda" data-i18n="combosNota">Marca ☑ dos o más opciones para ver cuánto suman y guárdalas como combo.</p>
+                    <div id="sumaSeleccion" class="hidden" aria-live="polite"></div>
+                    <button id="btnCrearCombo" class="secundario" type="button" disabled data-i18n="crearCombo">Guardar como combo</button>
+                    <div id="listaCombos"></div>
+                </div>
+
                 <button id="btnGuardarDeseo" disabled data-i18n="btnGuardarDeseo">Guardar deseo</button>
                 <p id="msjDeseo" class="hidden"></p>
                 <p class="nota" id="notaPlazo" data-i18n="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
@@ -692,7 +756,29 @@
                 hola: "Hola,",
                 deseoIntro: "Cuéntale a tu amigo secreto qué te gustaría recibir.",
                 deseoLabel: "Mi deseo de regalo",
-                deseoPlaceholder: "Ej.: un libro de cocina, una bufanda de lana…",
+                opcionesNota: "Puedes poner varias opciones. Toca 🔗 Link o 💲 Precio para agregarlos.",
+                opcionN: "Opción {n}",
+                opcionPlaceholder: "¿Qué regalo te gustaría?",
+                pestanaLink: "🔗 Link",
+                pestanaPrecio: "💲 Precio",
+                precioPlaceholder: "Precio en pesos (ej. 85000)",
+                borrarOpcion: "Borrar opción {n}",
+                agregarOpcion: "＋ Agregar otra opción",
+                combosTitulo: "Combos (opcional)",
+                combosNota: "Marca ☑ dos o más opciones para ver cuánto suman y guárdalas como combo.",
+                seleccionadas: "Seleccionadas: {suma} de {presupuesto}",
+                dentroPresupuesto: "✅ Dentro del presupuesto",
+                excedePresupuesto: "⚠️ Te pasas del presupuesto por {exceso}",
+                algunasSinPrecio: "(algunas sin precio)",
+                crearCombo: "Guardar como combo",
+                comboN: "Combo {n}",
+                borrarCombo: "Borrar combo {n}",
+                comboMinimo: "Elige al menos dos opciones para armar un combo.",
+                comboRepetido: "Ese combo ya existe.",
+                maxOpciones: "Máximo {max} opciones.",
+                maxCombos: "Máximo {max} combos.",
+                opcionVacia: "Escribe el regalo de la opción {n} o bórrala.",
+                linkInvalido: "El link de la opción {n} debe empezar por http:// o https://",
                 btnGuardarDeseo: "Guardar deseo",
                 notaPlazo: "Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.",
                 plazoTerminadoNota: "🔒 El plazo para editar deseos ya terminó.",
@@ -765,7 +851,29 @@
                 hola: "Hi,",
                 deseoIntro: "Tell your Secret Santa what you'd like to receive.",
                 deseoLabel: "My gift wish",
-                deseoPlaceholder: "E.g. a cookbook, a wool scarf…",
+                opcionesNota: "You can add several options. Tap 🔗 Link or 💲 Price to add them.",
+                opcionN: "Option {n}",
+                opcionPlaceholder: "What gift would you like?",
+                pestanaLink: "🔗 Link",
+                pestanaPrecio: "💲 Price",
+                precioPlaceholder: "Price in pesos (e.g. 85000)",
+                borrarOpcion: "Delete option {n}",
+                agregarOpcion: "＋ Add another option",
+                combosTitulo: "Combos (optional)",
+                combosNota: "Tick ☑ two or more options to see their total and save them as a combo.",
+                seleccionadas: "Selected: {suma} of {presupuesto}",
+                dentroPresupuesto: "✅ Within budget",
+                excedePresupuesto: "⚠️ Over budget by {exceso}",
+                algunasSinPrecio: "(some without a price)",
+                crearCombo: "Save as combo",
+                comboN: "Combo {n}",
+                borrarCombo: "Delete combo {n}",
+                comboMinimo: "Choose at least two options to make a combo.",
+                comboRepetido: "That combo already exists.",
+                maxOpciones: "Maximum {max} options.",
+                maxCombos: "Maximum {max} combos.",
+                opcionVacia: "Write the gift for option {n} or delete it.",
+                linkInvalido: "The link in option {n} must start with http:// or https://",
                 btnGuardarDeseo: "Save wish",
                 notaPlazo: "You can edit it until Sunday, November 8 at 8:00 a.m.",
                 plazoTerminadoNota: "🔒 The deadline to edit wishes has passed.",
@@ -838,7 +946,29 @@
                 hola: "Hoi,",
                 deseoIntro: "Vertel je Secret Santa wat je graag zou willen krijgen.",
                 deseoLabel: "Mijn cadeauwens",
-                deseoPlaceholder: "Bijv. een kookboek, een wollen sjaal…",
+                opcionesNota: "Je kunt meerdere opties toevoegen. Tik op 🔗 Link of 💲 Prijs om ze toe te voegen.",
+                opcionN: "Optie {n}",
+                opcionPlaceholder: "Welk cadeau zou je willen?",
+                pestanaLink: "🔗 Link",
+                pestanaPrecio: "💲 Prijs",
+                precioPlaceholder: "Prijs in pesos (bijv. 85000)",
+                borrarOpcion: "Optie {n} verwijderen",
+                agregarOpcion: "＋ Nog een optie toevoegen",
+                combosTitulo: "Combinaties (optioneel)",
+                combosNota: "Vink ☑ twee of meer opties aan om het totaal te zien en sla ze op als combinatie.",
+                seleccionadas: "Geselecteerd: {suma} van {presupuesto}",
+                dentroPresupuesto: "✅ Binnen het budget",
+                excedePresupuesto: "⚠️ {exceso} boven het budget",
+                algunasSinPrecio: "(sommige zonder prijs)",
+                crearCombo: "Opslaan als combinatie",
+                comboN: "Combinatie {n}",
+                borrarCombo: "Combinatie {n} verwijderen",
+                comboMinimo: "Kies minstens twee opties voor een combinatie.",
+                comboRepetido: "Die combinatie bestaat al.",
+                maxOpciones: "Maximaal {max} opties.",
+                maxCombos: "Maximaal {max} combinaties.",
+                opcionVacia: "Vul het cadeau van optie {n} in of verwijder het.",
+                linkInvalido: "De link van optie {n} moet beginnen met http:// of https://",
                 btnGuardarDeseo: "Wens opslaan",
                 notaPlazo: "Je kunt het aanpassen tot zondag 8 november, 8:00 uur.",
                 plazoTerminadoNota: "🔒 De deadline om wensen aan te passen is voorbij.",
@@ -1211,7 +1341,23 @@
         }
 
         // 7. DESEO DE REGALO EN FIRESTORE (colección "deseos", un documento por nombre)
-        const MAX_DESEO = 200;
+        //    deseos/{nombre} = { opciones: [{ texto, link, precio }], combos: [{ opciones: [índices] }], actualizado }
+        //    (Firestore no permite listas dentro de listas, por eso cada combo es un objeto con su lista)
+        const MAX_OPCIONES  = 10;
+        const MAX_COMBOS    = 20;
+        const MAX_TEXTO     = 120;
+        const MAX_LINK      = 300;
+        const PRESUPUESTO_COP = 250000;   // debe coincidir con PRESUPUESTO (texto)
+
+        let opciones = [];                // [{ texto, link, precio }]  (precio: número o null)
+        let combos = [];                  // [[0, 2], [0, 5]]  índices de opciones
+        let seleccion = new Set();        // opciones marcadas ☑ para armar un combo
+        let pestanaAbierta = {};          // { índice: "link" | "precio" }
+        let edicionBloqueada = true;
+
+        const formatoPesos = new Intl.NumberFormat("es-CO");
+        const pesos = (valor) => "$ " + formatoPesos.format(valor);
+        const linkValido = (link) => /^https?:\/\/\S+$/i.test(link);
 
         // Firestore devuelve códigos como "permission-denied"; los traducimos a algo entendible
         function explicarErrorFirebase(error) {
@@ -1224,42 +1370,302 @@
             return t("errGenerico", { codigo: error && error.code ? ` (${error.code})` : "" });
         }
 
+        // Convierte lo guardado en Firestore (formato nuevo o el viejo { deseo: "texto" }) a opciones y combos
+        function leerDatosDeseo(datos) {
+            if (datos && Array.isArray(datos.opciones) && datos.opciones.length) {
+                const ops = datos.opciones.map(o => ({
+                    texto: String(o.texto || ""),
+                    link: String(o.link || ""),
+                    precio: Number.isFinite(o.precio) ? o.precio : null
+                }));
+                const cmb = (datos.combos || [])
+                    .map(c => (c.opciones || []).filter(i => Number.isInteger(i) && i >= 0 && i < ops.length))
+                    .filter(c => c.length >= 2);
+                return { opciones: ops, combos: cmb };
+            }
+            if (datos && datos.deseo) {
+                return { opciones: [{ texto: String(datos.deseo), link: "", precio: null }], combos: [] };
+            }
+            return { opciones: [], combos: [] };
+        }
+
+        const tieneDeseo = (datos) => leerDatosDeseo(datos).opciones.some(o => o.texto.trim());
+
         async function cargarDeseo() {
-            const input = $("inputDeseo");
             mostrarEstado("cargandoDeseo", "success", "msjDeseo");
             try {
                 const docDeseo = await getDoc(doc(db, "deseos", usuarioValidado));
-                input.value = docDeseo.exists() ? docDeseo.data().deseo : "";
+                const datos = leerDatosDeseo(docDeseo.exists() ? docDeseo.data() : null);
+                opciones = datos.opciones.length ? datos.opciones : [{ texto: "", link: "", precio: null }];
+                combos = datos.combos;
                 $("msjDeseo").className = "hidden";
             } catch (error) {
                 console.error("Error de Firestore:", error);
+                opciones = [{ texto: "", link: "", precio: null }];
+                combos = [];
                 mostrarEstado("errCargarDeseo", "error", "msjDeseo", { detalle: () => explicarErrorFirebase(error) });
             }
-            actualizarContador();
+            seleccion = new Set();
+            pestanaAbierta = {};
             actualizarPlazoDeseo();
         }
 
         // Habilita la edición del deseo solo antes del sorteo (las reglas de Firestore también lo exigen)
         function actualizarPlazoDeseo() {
-            const cerrado = plazoCerrado();
-            $("inputDeseo").disabled = cerrado;
-            $("btnGuardarDeseo").disabled = cerrado;
-            if (cerrado) $("notaPlazo").innerText = t("plazoTerminadoNota");
+            edicionBloqueada = plazoCerrado();
+            $("btnGuardarDeseo").disabled = edicionBloqueada;
+            $("btnAgregarOpcion").disabled = edicionBloqueada;
+            if (edicionBloqueada) $("notaPlazo").innerText = t("plazoTerminadoNota");
+            pintarOpciones();
         }
 
-        async function guardarDeseo() {
-            const deseo = $("inputDeseo").value.trim();
-            if (!usuarioValidado) {
-                mostrarEstado("validaPrimero", "error", "msjDeseo");
+        // ---------- Opciones ----------
+        // Dibuja todas las tarjetas de opciones. Los campos de texto actualizan "opciones" mientras se escribe,
+        // sin volver a dibujar (para no perder el cursor).
+        function pintarOpciones() {
+            const lista = $("listaOpciones");
+            lista.innerHTML = "";
+            opciones.forEach((op, i) => {
+                const tarjeta = document.createElement("div");
+                tarjeta.className = "opcion" + (seleccion.has(i) ? " marcada" : "");
+
+                const cabecera = document.createElement("div");
+                cabecera.className = "opcion-cabecera";
+                const check = document.createElement("label");
+                check.className = "check";
+                const casilla = document.createElement("input");
+                casilla.type = "checkbox";
+                casilla.checked = seleccion.has(i);
+                casilla.disabled = edicionBloqueada;
+                casilla.addEventListener("change", () => {
+                    casilla.checked ? seleccion.add(i) : seleccion.delete(i);
+                    tarjeta.classList.toggle("marcada", casilla.checked);
+                    pintarSuma();
+                });
+                const titulo = document.createElement("span");
+                titulo.textContent = t("opcionN", { n: i + 1 });
+                check.append(casilla, titulo);
+                cabecera.append(check);
+                if (opciones.length > 1 && !edicionBloqueada) {
+                    const borrar = document.createElement("button");
+                    borrar.type = "button";
+                    borrar.className = "icono";
+                    borrar.textContent = "🗑";
+                    borrar.title = t("borrarOpcion", { n: i + 1 });
+                    borrar.setAttribute("aria-label", borrar.title);
+                    borrar.addEventListener("click", () => borrarOpcion(i));
+                    cabecera.append(borrar);
+                }
+
+                const texto = document.createElement("input");
+                texto.type = "text";
+                texto.className = "opcion-texto";
+                texto.maxLength = MAX_TEXTO;
+                texto.placeholder = t("opcionPlaceholder");
+                texto.value = op.texto;
+                texto.disabled = edicionBloqueada;
+                texto.addEventListener("input", () => { op.texto = texto.value; });
+
+                // Mini pestañas: 🔗 Link y 💲 Precio (se marcan con ✓ si tienen dato)
+                const pestanas = document.createElement("div");
+                pestanas.className = "pestanas";
+                const botonesPestana = {};
+                const marcarPestana = (campo) => {
+                    const tieneDato = campo === "link" ? !!op.link : op.precio !== null;
+                    const boton = botonesPestana[campo];
+                    boton.className = "pestana" + (pestanaAbierta[i] === campo ? " activa" : "") + (tieneDato ? " con-dato" : "");
+                    boton.textContent = t(campo === "link" ? "pestanaLink" : "pestanaPrecio") + (tieneDato ? " ✓" : "");
+                    boton.setAttribute("aria-expanded", String(pestanaAbierta[i] === campo));
+                };
+                for (const campo of ["link", "precio"]) {
+                    const boton = document.createElement("button");
+                    boton.type = "button";
+                    botonesPestana[campo] = boton;
+                    marcarPestana(campo);
+                    boton.addEventListener("click", () => {
+                        pestanaAbierta[i] = pestanaAbierta[i] === campo ? null : campo;
+                        pintarOpciones();
+                        const abierto = $("listaOpciones").children[i].querySelector(".opcion-" + campo);
+                        if (abierto) abierto.focus();
+                    });
+                    pestanas.append(boton);
+                }
+
+                tarjeta.append(cabecera, texto, pestanas);
+
+                if (pestanaAbierta[i] === "link") {
+                    const link = document.createElement("input");
+                    link.type = "url";
+                    link.className = "opcion-link";
+                    link.maxLength = MAX_LINK;
+                    link.placeholder = "https://…";
+                    link.value = op.link;
+                    link.disabled = edicionBloqueada;
+                    link.addEventListener("input", () => { op.link = link.value.trim(); marcarPestana("link"); });
+                    tarjeta.append(link);
+                }
+                if (pestanaAbierta[i] === "precio") {
+                    const precio = document.createElement("input");
+                    precio.type = "text";
+                    precio.inputMode = "numeric";
+                    precio.className = "opcion-precio";
+                    precio.placeholder = t("precioPlaceholder");
+                    precio.value = op.precio !== null ? pesos(op.precio) : "";
+                    precio.disabled = edicionBloqueada;
+                    precio.addEventListener("input", () => {
+                        const digitos = precio.value.replace(/\D/g, "").slice(0, 9);
+                        op.precio = digitos ? Number(digitos) : null;
+                        precio.value = digitos ? pesos(op.precio) : "";
+                        marcarPestana("precio");
+                        pintarSuma();
+                        pintarCombos();
+                    });
+                    tarjeta.append(precio);
+                }
+                lista.append(tarjeta);
+            });
+            pintarSuma();
+            pintarCombos();
+        }
+
+        function agregarOpcion() {
+            if (edicionBloqueada) return;
+            if (opciones.length >= MAX_OPCIONES) {
+                mostrarEstado("maxOpciones", "error", "msjDeseo", { max: MAX_OPCIONES });
                 return;
             }
-            if (!deseo) {
-                mostrarEstado("escribeDeseo", "error", "msjDeseo");
+            opciones.push({ texto: "", link: "", precio: null });
+            pintarOpciones();
+            const tarjetas = $("listaOpciones").children;
+            tarjetas[tarjetas.length - 1].querySelector(".opcion-texto").focus();
+        }
+
+        // Al borrar una opción se corren los números de las siguientes y se ajustan los combos
+        function borrarOpcion(indice) {
+            opciones.splice(indice, 1);
+            const correr = (i) => (i > indice ? i - 1 : i);
+            seleccion = new Set([...seleccion].filter(i => i !== indice).map(correr));
+            combos = combos
+                .map(c => c.filter(i => i !== indice).map(correr))
+                .filter(c => c.length >= 2);
+            combos = combos.filter((c, k) => combos.findIndex(o => o.join() === c.join()) === k);
+            const abiertas = {};
+            for (const [i, campo] of Object.entries(pestanaAbierta)) {
+                if (Number(i) !== indice) abiertas[correr(Number(i))] = campo;
+            }
+            pestanaAbierta = abiertas;
+            pintarOpciones();
+        }
+
+        // ---------- Suma, presupuesto y combos ----------
+        function sumarOpciones(indices) {
+            let suma = 0, sinPrecio = false;
+            for (const i of indices) {
+                if (opciones[i] && opciones[i].precio !== null) suma += opciones[i].precio;
+                else sinPrecio = true;
+            }
+            return { suma, sinPrecio };
+        }
+
+        function textoPresupuesto(suma, sinPrecio) {
+            const extra = sinPrecio ? " " + t("algunasSinPrecio") : "";
+            return suma > PRESUPUESTO_COP
+                ? { clase: "excede", texto: t("excedePresupuesto", { exceso: pesos(suma - PRESUPUESTO_COP) }) + extra }
+                : { clase: "dentro", texto: t("dentroPresupuesto") + extra };
+        }
+
+        function pintarSuma() {
+            const caja = $("sumaSeleccion");
+            const indices = [...seleccion].sort((a, b) => a - b);
+            $("btnCrearCombo").disabled = edicionBloqueada || indices.length < 2;
+            if (!indices.length) {
+                caja.classList.add("hidden");
+                return;
+            }
+            const { suma, sinPrecio } = sumarOpciones(indices);
+            const estado = textoPresupuesto(suma, sinPrecio);
+            caja.className = "suma " + estado.clase;
+            caja.innerHTML = "";
+            const linea = document.createElement("strong");
+            linea.textContent = t("seleccionadas", { suma: pesos(suma), presupuesto: pesos(PRESUPUESTO_COP) });
+            const aviso = document.createElement("span");
+            aviso.textContent = estado.texto;
+            caja.append(linea, aviso);
+        }
+
+        function crearCombo() {
+            const indices = [...seleccion].sort((a, b) => a - b);
+            if (indices.length < 2) {
+                mostrarEstado("comboMinimo", "error", "msjDeseo");
+                return;
+            }
+            if (combos.some(c => c.join() === indices.join())) {
+                mostrarEstado("comboRepetido", "error", "msjDeseo");
+                return;
+            }
+            if (combos.length >= MAX_COMBOS) {
+                mostrarEstado("maxCombos", "error", "msjDeseo", { max: MAX_COMBOS });
+                return;
+            }
+            combos.push(indices);
+            seleccion = new Set();
+            $("msjDeseo").className = "hidden";
+            pintarOpciones();
+        }
+
+        function pintarCombos() {
+            const lista = $("listaCombos");
+            lista.innerHTML = "";
+            combos.forEach((c, k) => {
+                const { suma, sinPrecio } = sumarOpciones(c);
+                const estado = textoPresupuesto(suma, sinPrecio);
+                const fila = document.createElement("div");
+                fila.className = "combo " + estado.clase;
+                const texto = document.createElement("div");
+                const nombre = document.createElement("strong");
+                nombre.textContent = t("comboN", { n: k + 1 }) + ": " + c.map(i => t("opcionN", { n: i + 1 })).join(" + ");
+                const detalle = document.createElement("small");
+                detalle.textContent = pesos(suma) + " · " + estado.texto;
+                texto.append(nombre, detalle);
+                fila.append(texto);
+                if (!edicionBloqueada) {
+                    const borrar = document.createElement("button");
+                    borrar.type = "button";
+                    borrar.className = "icono";
+                    borrar.textContent = "🗑";
+                    borrar.title = t("borrarCombo", { n: k + 1 });
+                    borrar.setAttribute("aria-label", borrar.title);
+                    borrar.addEventListener("click", () => { combos.splice(k, 1); pintarCombos(); });
+                    fila.append(borrar);
+                }
+                lista.append(fila);
+            });
+        }
+
+        // ---------- Guardar ----------
+        async function guardarDeseo() {
+            if (!usuarioValidado) {
+                mostrarEstado("validaPrimero", "error", "msjDeseo");
                 return;
             }
             if (plazoCerrado()) {
                 actualizarPlazoDeseo();
                 mostrarEstado("plazoTerminado", "error", "msjDeseo");
+                return;
+            }
+            const limpias = opciones.map(o => ({
+                texto: o.texto.trim().slice(0, MAX_TEXTO),
+                link: o.link.trim().slice(0, MAX_LINK),
+                precio: o.precio
+            }));
+            const vacia = limpias.findIndex(o => !o.texto);
+            if (vacia !== -1) {
+                mostrarEstado(limpias.length === 1 ? "escribeDeseo" : "opcionVacia", "error", "msjDeseo", { n: vacia + 1 });
+                return;
+            }
+            const linkMalo = limpias.findIndex(o => o.link && !linkValido(o.link));
+            if (linkMalo !== -1) {
+                mostrarEstado("linkInvalido", "error", "msjDeseo", { n: linkMalo + 1 });
                 return;
             }
 
@@ -1268,7 +1674,8 @@
             mostrarEstado("guardando", "success", "msjDeseo");
             try {
                 await setDoc(doc(db, "deseos", usuarioValidado), {
-                    deseo: deseo.slice(0, MAX_DESEO),
+                    opciones: limpias,
+                    combos: combos.map(c => ({ opciones: c })),
                     actualizado: serverTimestamp()
                 });
                 mostrarEstado("deseoGuardado", "success", "msjDeseo");
@@ -1280,8 +1687,29 @@
             btn.disabled = false;
         }
 
-        function actualizarContador() {
-            $("contadorDeseo").innerText = `${$("inputDeseo").value.length}/${MAX_DESEO}`;
+        // ---------- Texto del deseo para el correo del sorteo ----------
+        // Va como HTML en la plantilla ({{{deseo}}} con tres llaves); todo lo que escribió la persona se escapa.
+        const escaparHTML = (texto) => String(texto).replace(/[&<>"']/g,
+            c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        function deseoParaCorreo(datos) {
+            const { opciones: ops, combos: cmb } = leerDatosDeseo(datos);
+            const validas = ops.filter(o => o.texto.trim());
+            if (!validas.length) return "Todavía no escribió su deseo 🙈";
+            const lineas = ops.map((o, i) => {
+                let linea = `<b>Opción ${i + 1}:</b> ${escaparHTML(o.texto)}`;
+                if (o.precio !== null) linea += ` — ${pesos(o.precio)}`;
+                if (o.link && linkValido(o.link)) linea += ` — <a href="${escaparHTML(o.link)}">ver regalo</a>`;
+                return linea;
+            });
+            let html = lineas.join("<br>");
+            if (cmb.length) {
+                html += "<br><br><b>Combos:</b><br>" + cmb.map((c, k) => {
+                    const suma = c.reduce((total, i) => total + (ops[i].precio || 0), 0);
+                    return `Combo ${k + 1}: ${c.map(i => "Opción " + (i + 1)).join(" + ")}` + (suma ? ` — ${pesos(suma)}` : "");
+                }).join("<br>");
+            }
+            return html;
         }
 
         // 7b. SORTEO (solo el organizador)
@@ -1385,9 +1813,9 @@
                 }
                 try {
                     const d = await getDoc(doc(db, "deseos", nombre));
-                    deseos[nombre] = d.exists() ? d.data().deseo : "";
+                    deseos[nombre] = d.exists() ? d.data() : null;
                 } catch (error) {
-                    deseos[nombre] = "";
+                    deseos[nombre] = null;
                 }
             }
 
@@ -1410,7 +1838,7 @@
                 to_email:      correosSorteo[nombre],
                 to_name:       nombreVisible(nombre),
                 amigo:         nombreVisible(asignaciones[nombre]),
-                deseo:         deseos[asignaciones[nombre]] || "Todavía no escribió su deseo 🙈",
+                deseo:         deseoParaCorreo(deseos[asignaciones[nombre]]),
                 presupuesto:   PRESUPUESTO,
                 fecha_entrega: FECHA_ENTREGA
             }));
@@ -1475,7 +1903,8 @@
         $("btnSorteo").addEventListener("click", hacerSorteo);
         $("btnReintentar").addEventListener("click", reintentarCorreos);
         $("btnGuardarDeseo").addEventListener("click", guardarDeseo);
-        $("inputDeseo").addEventListener("input", actualizarContador);
+        $("btnAgregarOpcion").addEventListener("click", agregarOpcion);
+        $("btnCrearCombo").addEventListener("click", crearCombo);
         $("btnSolicitar").addEventListener("click", gestionarPIN);
         $("btnReenviar").addEventListener("click", gestionarPIN);
         $("btnCambiar").addEventListener("click", cambiarUsuario);
@@ -1504,7 +1933,7 @@
         async function actualizarProgreso() {
             try {
                 const docs = await Promise.all(PARTICIPANTES.map(nombre => getDoc(doc(db, "deseos", nombre))));
-                deseosEscritos = docs.filter(d => d.exists() && d.data().deseo).length;
+                deseosEscritos = docs.filter(d => d.exists() && tieneDeseo(d.data())).length;
                 pintarProgreso();
             } catch (error) {
                 console.error("Error de Firestore (progreso):", error);
