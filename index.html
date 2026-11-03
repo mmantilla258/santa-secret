@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secret Santa 2026</title>
-    <meta name="theme-color" content="#0d1f18">
+    <meta name="theme-color" content="#0f1412">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         /* ---------- Colores y medidas (cambiar aquí para ajustar el estilo) ---------- */
         :root {
-            --fondo-1: #0d1f18;          /* verde pino oscuro */
-            --fondo-2: #3b0f16;          /* vino */
-            --tarjeta: rgba(255, 255, 255, 0.07);
-            --borde: rgba(255, 255, 255, 0.14);
-            --texto: #f7f2e9;            /* crema */
-            --suave: #b8c4bc;
-            --rojo: #e5484d;
-            --rojo-oscuro: #b42830;
-            --verde: #34c77b;
-            --oro: #f2c14e;
-            --error: #ff8f8f;
-            --radio: 16px;
+            --fondo: #0f1412;            /* verde casi negro */
+            --superficie: rgba(22, 29, 26, 0.82);
+            --borde: rgba(201, 169, 110, 0.28);        /* dorado tenue */
+            --borde-suave: rgba(255, 255, 255, 0.08);
+            --texto: #f3efe6;            /* marfil */
+            --suave: #a3aca6;
+            --oro: #c9a96e;              /* dorado champán */
+            --oro-claro: #e2cb9a;
+            --verde: #6cc596;
+            --error: #e99393;
+            --radio: 14px;
+            --serif: "Cormorant Garamond", Georgia, serif;
         }
 
         * { box-sizing: border-box; }
@@ -30,198 +30,282 @@
         body {
             margin: 0;
             min-height: 100dvh;
-            padding: 28px 16px 40px;
-            font-family: "Poppins", system-ui, sans-serif;
+            font-family: "Inter", system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
             color: var(--texto);
-            text-align: center;
-            background:
-                radial-gradient(1200px 600px at 10% -10%, rgba(229, 72, 77, 0.28), transparent 60%),
-                radial-gradient(900px 500px at 110% 10%, rgba(242, 193, 78, 0.14), transparent 60%),
-                linear-gradient(160deg, var(--fondo-1) 0%, #10261d 45%, var(--fondo-2) 100%);
-            background-attachment: fixed;
+            background: var(--fondo);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Nieve suave de fondo (se desactiva si el teléfono pide "reducir movimiento") */
-        body::before {
+        /* ---------- Portada con la foto familiar ----------
+           En celular la foto se ve completa (que no se corte a nadie) y el título va debajo;
+           en pantallas grandes la foto ocupa más alto y el título va encima. */
+        .hero { position: relative; }
+        .hero-foto { position: relative; overflow: hidden; }
+        .hero img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            object-position: center 30%;
+            filter: saturate(0.8) contrast(1.03);
+        }
+        /* Degradado: la foto se funde con el fondo oscuro para que el texto se lea bien */
+        .hero-foto::after {
             content: "";
-            position: fixed;
-            inset: -100px 0 0 0;
-            pointer-events: none;
-            opacity: 0.35;
-            background-image:
-                radial-gradient(2px 2px at 20px 30px, #fff 50%, transparent 51%),
-                radial-gradient(2px 2px at 120px 80px, #fff 50%, transparent 51%),
-                radial-gradient(1.5px 1.5px at 200px 150px, #fff 50%, transparent 51%),
-                radial-gradient(1.5px 1.5px at 60px 190px, #fff 50%, transparent 51%),
-                radial-gradient(2px 2px at 260px 40px, #fff 50%, transparent 51%);
-            background-size: 300px 220px;
-            animation: nieve 18s linear infinite;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg,
+                rgba(15, 20, 18, 0) 0%,
+                rgba(15, 20, 18, 0.15) 50%,
+                rgba(15, 20, 18, 0.75) 82%,
+                var(--fondo) 100%);
         }
-        @keyframes nieve { to { transform: translateY(220px); } }
-        @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
-
-        .contenedor { position: relative; max-width: 420px; margin: 0 auto; }
-
-        /* ---------- Encabezado ---------- */
-        .insignia {
-            width: 72px; height: 72px; margin: 0 auto 12px;
-            display: grid; place-items: center;
-            font-size: 38px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
-            border: 1px solid var(--borde);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        .hero-texto {
+            position: relative;
+            z-index: 1;
+            margin-top: -44px;
+            padding: 0 16px;
+            text-align: center;
+        }
+        .antetitulo {
+            margin: 0 0 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--oro-claro);
         }
         h1 {
             margin: 0;
-            font-size: clamp(28px, 8vw, 36px);
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, var(--oro), var(--texto));
-            -webkit-background-clip: text; background-clip: text;
-            color: transparent;
+            font-family: var(--serif);
+            font-weight: 600;
+            font-size: clamp(46px, 13vw, 76px);
+            line-height: 0.95;
+            letter-spacing: 0.01em;
+            text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
         }
-        .subtitulo { margin: 4px 0 20px; color: var(--suave); font-size: 15px; }
+        .hero-sub { margin: 10px 0 0; color: #dcd8cf; font-size: 15px; }
+
+        .contenedor {
+            position: relative;
+            z-index: 2;
+            max-width: 460px;
+            margin: 24px auto 0;
+            padding: 0 16px 48px;
+        }
 
         /* ---------- Tarjetas ---------- */
         .card {
-            background: var(--tarjeta);
-            border: 1px solid var(--borde);
+            background: var(--superficie);
+            border: 1px solid var(--borde-suave);
             border-radius: var(--radio);
-            padding: 22px 18px;
+            padding: 24px 20px;
             margin-bottom: 16px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+        }
+        .titulo-card {
+            margin: 0 0 4px;
+            font-family: var(--serif);
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.1;
         }
 
         /* ---------- Cuenta regresiva ---------- */
-        .cuenta-titulo { margin: 0 0 12px; font-size: 14px; color: var(--suave); }
-        .cuenta-titulo strong { color: var(--texto); font-weight: 600; white-space: nowrap; }
-        .cuenta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .cuenta div {
-            padding: 10px 4px;
-            border-radius: 12px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--borde);
+        .card-cuenta { border-color: var(--borde); text-align: center; }
+        .cuenta-titulo {
+            margin: 0 0 14px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.26em;
+            text-transform: uppercase;
+            color: var(--suave);
         }
-        .cuenta b { display: block; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .cuenta span { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--suave); }
-        .datos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-        .datos span { padding: 8px; border-radius: 12px; font-size: 12px; color: var(--suave); background: rgba(242, 193, 78, 0.08); }
-        .datos strong { display: block; margin-top: 2px; font-size: 15px; font-weight: 600; color: var(--oro); }
+        .cuenta-titulo strong { color: var(--oro-claro); font-size: 13px; letter-spacing: 0.1em; }
+        .cuenta { display: flex; justify-content: center; align-items: flex-start; gap: 4px; }
+        .unidad { min-width: 62px; }
+        .unidad b {
+            display: block;
+            font-family: var(--serif);
+            font-size: clamp(42px, 12vw, 56px);
+            font-weight: 600;
+            line-height: 1;
+            font-variant-numeric: lining-nums tabular-nums;
+        }
+        .unidad span {
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--suave);
+        }
+        .separador {
+            font-family: var(--serif);
+            font-size: 36px;
+            line-height: 1.15;
+            color: var(--oro);
+            opacity: 0.6;
+        }
+        .datos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--borde-suave);
+        }
+        .datos div { padding: 0 4px; }
+        .datos div + div { border-left: 1px solid var(--borde-suave); }
+        .datos small {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--suave);
+        }
+        .datos strong { display: block; margin-top: 4px; font-size: 13.5px; font-weight: 600; color: var(--oro-claro); }
 
         /* ---------- Formularios ---------- */
-        .etiqueta { display: block; text-align: left; margin: 4px 2px 6px; font-size: 14px; font-weight: 600; }
+        .etiqueta { display: block; margin: 16px 0 6px; font-size: 13px; font-weight: 500; color: var(--suave); }
         select, input, textarea, button {
             width: 100%;
             font: inherit;
             font-size: 16px;               /* 16px evita el zoom automático en iPhone */
-            border-radius: 12px;
+            border-radius: 10px;
         }
         select, input, textarea {
-            padding: 12px 14px;
+            padding: 13px 14px;
             color: var(--texto);
-            background: rgba(0, 0, 0, 0.28);
-            border: 1px solid var(--borde);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--borde-suave);
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         select:focus, input:focus, textarea:focus {
             border-color: var(--oro);
-            box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.25);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.2);
         }
         select {
             appearance: none; -webkit-appearance: none;
             padding-right: 40px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23f7f2e9' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a96e' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 14px center;
         }
         select option { color: #111; }
-        select:disabled { opacity: 0.7; }
-        textarea { resize: vertical; min-height: 90px; }
+        select:disabled { opacity: 0.75; }
+        textarea { resize: vertical; min-height: 96px; }
         textarea:disabled { opacity: 0.6; }
         .pin {
             text-align: center;
-            font-size: 28px;
+            font-family: var(--serif);
+            font-size: 34px;
             font-weight: 600;
-            letter-spacing: 12px;
-            padding-left: 26px;           /* compensa el espacio entre letras para que se vea centrado */
+            letter-spacing: 14px;
+            font-variant-numeric: lining-nums;
+            padding-left: 28px;           /* compensa el espacio entre letras para que se vea centrado */
         }
-        .contador { display: block; text-align: right; color: var(--suave); font-size: 12px; margin: 4px 2px 0; }
+        .contador { display: block; text-align: right; color: var(--suave); font-size: 12px; margin-top: 4px; }
 
         /* ---------- Botones ---------- */
         button {
-            margin-top: 12px;
-            padding: 13px 16px;
+            margin-top: 14px;
+            padding: 14px 16px;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, var(--rojo), var(--rojo-oscuro));
-            box-shadow: 0 8px 20px rgba(229, 72, 77, 0.3);
-            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            letter-spacing: 0.02em;
+            color: #1c1710;
+            background: linear-gradient(180deg, var(--oro-claro), var(--oro));
+            box-shadow: 0 10px 24px rgba(201, 169, 110, 0.18);
+            transition: transform 0.15s, filter 0.15s, opacity 0.15s;
         }
-        button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(229, 72, 77, 0.4); }
+        button:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
         button:active:not(:disabled) { transform: translateY(1px); }
-        button:disabled { cursor: not-allowed; opacity: 0.55; box-shadow: none; }
-        button:focus-visible, a:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+        button:disabled { cursor: not-allowed; opacity: 0.45; box-shadow: none; }
+        button:focus-visible, a:focus-visible { outline: 2px solid var(--oro-claro); outline-offset: 3px; }
         .secundario {
+            color: var(--texto);
             background: transparent;
             border: 1px solid var(--borde);
             box-shadow: none;
         }
-        .secundario:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); box-shadow: none; }
+        .secundario:hover:not(:disabled) { background: rgba(201, 169, 110, 0.08); filter: none; }
         .link {
+            display: block;
             width: auto;
+            margin: 10px auto 0;
+            padding: 6px;
             background: none;
             box-shadow: none;
             color: var(--suave);
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             text-decoration: underline;
-            padding: 8px;
+            text-underline-offset: 3px;
         }
-        .link:hover:not(:disabled) { color: var(--texto); box-shadow: none; transform: none; }
+        .link:hover:not(:disabled) { color: var(--texto); transform: none; filter: none; }
         .boton-wpp {
             display: flex; align-items: center; justify-content: center; gap: 8px;
             width: 100%;
-            padding: 13px 16px;
-            border-radius: 12px;
-            font-weight: 600;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-weight: 500;
             text-decoration: none;
-            color: var(--verde);
-            border: 1px solid rgba(52, 199, 123, 0.5);
-            background: rgba(52, 199, 123, 0.08);
-            transition: background 0.15s;
+            color: var(--texto);
+            border: 1px solid var(--borde-suave);
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.15s, border-color 0.15s;
         }
-        .boton-wpp:hover { background: rgba(52, 199, 123, 0.16); }
+        .boton-wpp:hover { background: rgba(108, 197, 150, 0.08); border-color: rgba(108, 197, 150, 0.4); }
+        .boton-wpp svg { width: 18px; height: 18px; fill: var(--verde); }
 
         /* ---------- Mensajes (mostrarEstado cambia la clase a "success" o "error") ---------- */
         .hidden { display: none !important; }
         .success, .error {
             margin: 14px 0 0;
-            padding: 10px 12px;
+            padding: 11px 13px;
             border-radius: 10px;
             font-size: 14px;
-            font-weight: 500;
-            text-align: left;
         }
-        .success { color: #c8f5dc; background: rgba(52, 199, 123, 0.14); border: 1px solid rgba(52, 199, 123, 0.35); }
-        .error { color: var(--error); background: rgba(255, 143, 143, 0.1); border: 1px solid rgba(255, 143, 143, 0.35); }
+        .success { color: #cdeedb; background: rgba(108, 197, 150, 0.1); border: 1px solid rgba(108, 197, 150, 0.3); }
+        .error { color: var(--error); background: rgba(233, 147, 147, 0.08); border: 1px solid rgba(233, 147, 147, 0.3); }
 
         /* ---------- Secciones dentro de la tarjeta ---------- */
-        .seccion { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--borde); }
-        .texto-suave { color: var(--suave); font-size: 14px; margin: 0 0 10px; }
-        .saludo { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
-        .nota { color: var(--suave); font-size: 12px; margin: 10px 0 0; }
-        .pie { color: var(--suave); font-size: 12px; opacity: 0.8; margin-top: 8px; }
+        .seccion { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--borde-suave); }
+        .texto-suave { color: var(--suave); font-size: 14px; margin: 0; }
+        .saludo { margin: 0 0 4px; font-family: var(--serif); font-size: 26px; font-weight: 600; line-height: 1.15; }
+        .nota { color: var(--suave); font-size: 12px; margin: 12px 0 0; text-align: center; }
+        .pie {
+            margin: 28px 0 0;
+            text-align: center;
+            font-family: var(--serif);
+            font-size: 16px;
+            font-style: italic;
+            color: var(--suave);
+        }
 
         /* Aparición suave de las secciones */
-        .seccion, .card { animation: aparecer 0.35s ease-out; }
-        @keyframes aparecer { from { opacity: 0; transform: translateY(6px); } }
+        .seccion, .card { animation: aparecer 0.4s ease-out; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(8px); } }
         @media (prefers-reduced-motion: reduce) { .seccion, .card { animation: none; } }
+
+        /* Pantallas grandes: portada más alta */
+        @media (min-width: 768px) {
+            .hero-foto { height: 68vh; max-height: 660px; min-height: 420px; }
+            .hero img { height: 100%; object-position: center 12%; }
+            .hero-foto::after {
+                background: linear-gradient(180deg,
+                    rgba(15, 20, 18, 0.05) 0%,
+                    rgba(15, 20, 18, 0.30) 50%,
+                    rgba(15, 20, 18, 0.88) 82%,
+                    var(--fondo) 100%);
+            }
+            .hero-texto { position: absolute; left: 0; right: 0; bottom: 110px; margin: 0; }
+            .contenedor { margin-top: -90px; }
+        }
     </style>
     <!-- SDK de EmailJS (versión fija + huella "integrity": si el archivo del CDN cambia, el navegador no lo ejecuta) -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
@@ -230,80 +314,96 @@
 </head>
 <body>
 
+    <header class="hero">
+        <div class="hero-foto">
+            <img src="family.jpeg" alt="Foto de la familia" width="1024" height="683" fetchpriority="high">
+        </div>
+        <div class="hero-texto">
+            <p class="antetitulo">Familia · Navidad 2026</p>
+            <h1>Secret Santa</h1>
+            <p class="hero-sub">Nuestro intercambio de regalos</p>
+        </div>
+    </header>
+
     <main class="contenedor">
-        <header>
-            <div class="insignia" aria-hidden="true">🎅</div>
-            <h1>Secret Santa 2026</h1>
-            <p class="subtitulo">Intercambio de regalos en familia 🎁</p>
-        </header>
 
         <!-- Cuenta regresiva al sorteo (la fecha está en FECHA_SORTEO, en el script) -->
-        <section class="card" aria-live="polite">
-            <p class="cuenta-titulo" id="cuentaTitulo">Sorteo: <strong>domingo 8 de nov · 8:00 a. m.</strong></p>
-            <div class="cuenta" id="cuenta">
-                <div><b id="cdDias">–</b><span>días</span></div>
-                <div><b id="cdHoras">–</b><span>horas</span></div>
-                <div><b id="cdMin">–</b><span>min</span></div>
-                <div><b id="cdSeg">–</b><span>seg</span></div>
+        <section class="card card-cuenta">
+            <p class="cuenta-titulo" id="cuentaTitulo">Faltan para el sorteo</p>
+            <div class="cuenta" id="cuenta" role="timer" aria-label="Tiempo que falta para el sorteo">
+                <div class="unidad"><b id="cdDias">–</b><span>Días</span></div>
+                <div class="separador" aria-hidden="true">:</div>
+                <div class="unidad"><b id="cdHoras">–</b><span>Horas</span></div>
+                <div class="separador" aria-hidden="true">:</div>
+                <div class="unidad"><b id="cdMin">–</b><span>Min</span></div>
+                <div class="separador" aria-hidden="true">:</div>
+                <div class="unidad"><b id="cdSeg">–</b><span>Seg</span></div>
             </div>
             <div class="datos">
-                <span>💰 Presupuesto<strong id="txtPresupuesto"></strong></span>
-                <span>🎄 Entrega<strong id="txtEntrega"></strong></span>
+                <div><small>Sorteo</small><strong>Dom 8 nov<br>8:00 a. m.</strong></div>
+                <div><small>Presupuesto</small><strong id="txtPresupuesto"></strong></div>
+                <div><small>Entrega</small><strong id="txtEntrega"></strong></div>
             </div>
         </section>
 
-    <div class="card">
-        <label class="etiqueta" for="participanteSelect">¿Quién eres?</label>
-        <select id="participanteSelect">
-            <option value="">Selecciona tu nombre</option>
-            <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
-            <option value="Alejandro">Alejandro</option>
-            <option value="Familiar2">Familiar 2</option>
-            <option value="Familiar3">Familiar 3</option>
-            <option value="Familiar4">Familiar 4</option>
-            <option value="Familiar5">Familiar 5</option>
-            <option value="Familiar6">Familiar 6</option>
-            <option value="Familiar7">Familiar 7</option>
-            <option value="Familiar8">Familiar 8</option>
-        </select>
+        <section class="card">
+            <h2 class="titulo-card">Ingresa</h2>
+            <p class="texto-suave">Elige tu nombre y te enviaremos un código de acceso a tu correo.</p>
 
-        <button id="btnSolicitar">✉️ Enviarme un PIN</button>
-        <button id="btnReenviar" class="secundario hidden">Reenviar código</button>
-        <button id="btnCambiar" class="link hidden">No soy yo / cambiar nombre</button>
+            <label class="etiqueta" for="participanteSelect">¿Quién eres?</label>
+            <select id="participanteSelect">
+                <option value="">Selecciona tu nombre</option>
+                <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
+                <option value="Alejandro">Alejandro</option>
+                <option value="Familiar2">Familiar 2</option>
+                <option value="Familiar3">Familiar 3</option>
+                <option value="Familiar4">Familiar 4</option>
+                <option value="Familiar5">Familiar 5</option>
+                <option value="Familiar6">Familiar 6</option>
+                <option value="Familiar7">Familiar 7</option>
+                <option value="Familiar8">Familiar 8</option>
+            </select>
 
-        <p id="msjEstado" class="hidden"></p>
+            <button id="btnSolicitar">Enviarme el código</button>
+            <button id="btnReenviar" class="secundario hidden">Reenviar código</button>
+            <button id="btnCambiar" class="link hidden">No soy yo / cambiar nombre</button>
 
-        <div id="zonaValidacion" class="seccion hidden">
-            <label class="etiqueta" for="inputPIN">Escribe el PIN de 4 dígitos que llegó a tu correo</label>
-            <input type="text" id="inputPIN" class="pin" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
-            <button id="btnValidar">🔓 Entrar</button>
-        </div>
+            <p id="msjEstado" class="hidden"></p>
 
-        <div id="zonaRegalo" class="seccion hidden">
-            <p class="saludo">¡Hola, <span id="nombreConfirmado"></span>! 👋</p>
-            <p class="texto-suave">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
+            <div id="zonaValidacion" class="seccion hidden">
+                <label class="etiqueta" for="inputPIN">Código de 4 dígitos que llegó a tu correo</label>
+                <input type="text" id="inputPIN" class="pin" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+                <button id="btnValidar">Entrar</button>
+            </div>
 
-            <label class="etiqueta" for="inputDeseo">🎁 Mi deseo de regalo</label>
-            <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" disabled></textarea>
-            <small id="contadorDeseo" class="contador">0/200</small>
-            <button id="btnGuardarDeseo" disabled>💾 Guardar deseo</button>
-            <p id="msjDeseo" class="hidden"></p>
-            <p class="nota" id="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
-        </div>
+            <div id="zonaRegalo" class="seccion hidden">
+                <p class="saludo">Hola, <span id="nombreConfirmado"></span> 🎄</p>
+                <p class="texto-suave">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
 
-        <!-- Solo se muestra al ORGANIZADOR. Nunca muestra quién le regala a quién. -->
-        <div id="panelOrganizador" class="seccion hidden">
-            <p class="saludo">🎲 Panel del organizador</p>
-            <p class="texto-suave" id="txtModoSorteo"></p>
-            <button id="btnSorteo">🎲 Hacer el sorteo</button>
-            <button id="btnReintentar" class="secundario hidden">🔁 Reintentar correos que fallaron</button>
-            <p id="msjSorteo" class="hidden"></p>
-        </div>
-    </div>
+                <label class="etiqueta" for="inputDeseo">Mi deseo de regalo</label>
+                <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" disabled></textarea>
+                <small id="contadorDeseo" class="contador">0/200</small>
+                <button id="btnGuardarDeseo" disabled>Guardar deseo</button>
+                <p id="msjDeseo" class="hidden"></p>
+                <p class="nota" id="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
+            </div>
+
+            <!-- Solo se muestra al ORGANIZADOR. Nunca muestra quién le regala a quién. -->
+            <div id="panelOrganizador" class="seccion hidden">
+                <p class="saludo">Panel del organizador</p>
+                <p class="texto-suave" id="txtModoSorteo"></p>
+                <button id="btnSorteo">🎲 Hacer el sorteo</button>
+                <button id="btnReintentar" class="secundario hidden">Reintentar correos que fallaron</button>
+                <p id="msjSorteo" class="hidden"></p>
+            </div>
+        </section>
 
         <!-- Solo comparte el enlace de la página; nunca datos secretos (PIN, sorteo) -->
-        <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">📲 Invitar a la familia por WhatsApp</a>
-        <p class="pie">Hecho con ❤️ para la familia</p>
+        <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3z"/></svg>
+            Invitar a la familia por WhatsApp
+        </a>
+        <p class="pie">Hecho con cariño para la familia</p>
     </main>
 
     <script type="module">
@@ -801,12 +901,12 @@
             if (restante <= 0) {
                 clearInterval(temporizadorCuenta);
                 $("cuenta").classList.add("hidden");
-                $("cuentaTitulo").innerHTML = "🎉 <strong>¡Llegó el día del sorteo!</strong>";
+                $("cuentaTitulo").innerHTML = "<strong>🎄 ¡Llegó el día del sorteo!</strong>";
                 if (usuarioValidado) actualizarPlazoDeseo();
                 return;
             }
             const seg = Math.floor(restante / 1000);
-            $("cdDias").innerText  = Math.floor(seg / 86400);
+            $("cdDias").innerText  = String(Math.floor(seg / 86400)).padStart(2, "0");
             $("cdHoras").innerText = String(Math.floor(seg / 3600) % 24).padStart(2, "0");
             $("cdMin").innerText   = String(Math.floor(seg / 60) % 60).padStart(2, "0");
             $("cdSeg").innerText   = String(seg % 60).padStart(2, "0");
