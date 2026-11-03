@@ -284,6 +284,41 @@
         }
         .datos strong { display: block; margin-top: 4px; font-size: 13.5px; font-weight: 600; color: var(--oro-claro); }
 
+        /* ---------- Selector de idioma ---------- */
+        .idiomas {
+            position: absolute;
+            top: 10px; left: 10px;
+            z-index: 20;
+            display: flex;
+            gap: 6px;
+            padding: 5px;
+            border-radius: 10px;
+            background: rgba(6, 21, 16, 0.65);
+            border: 1px solid var(--borde);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+        .btn-idioma {
+            width: 32px; height: 22px;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: none;
+            box-shadow: none;
+            opacity: 0.55;
+            filter: saturate(0.7);
+            transition: opacity 0.15s, transform 0.15s, filter 0.15s;
+        }
+        .btn-idioma svg { display: block; width: 100%; height: 100%; }
+        .btn-idioma:hover:not(:disabled) { opacity: 0.9; filter: none; transform: translateY(-1px); }
+        .btn-idioma[aria-pressed="true"] {
+            opacity: 1;
+            filter: none;
+            border-color: var(--oro-claro);
+            box-shadow: 0 0 0 2px rgba(240, 217, 162, 0.35);
+        }
+
         /* ---------- Formularios ---------- */
         .etiqueta { display: block; margin: 16px 0 6px; font-size: 13px; font-weight: 500; color: var(--suave); }
         select, input, textarea, button {
@@ -430,6 +465,19 @@
 </head>
 <body>
 
+    <!-- Selector de idioma (arriba a la izquierda) -->
+    <nav class="idiomas" aria-label="Idioma / Language / Taal">
+        <button class="btn-idioma" data-idioma="es" title="Español" aria-label="Español">
+            <svg viewBox="0 0 750 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="750" height="500" fill="#c60b1e"/><rect y="125" width="750" height="250" fill="#ffc400"/></svg>
+        </button>
+        <button class="btn-idioma" data-idioma="en" title="English" aria-label="English">
+            <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><clipPath id="banderaUK"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#banderaUK)" stroke="#c8102e" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#c8102e" stroke-width="6"/></svg>
+        </button>
+        <button class="btn-idioma" data-idioma="nl" title="Nederlands" aria-label="Nederlands">
+            <svg viewBox="0 0 9 6" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="9" height="6" fill="#21468b"/><rect width="9" height="4" fill="#fff"/><rect width="9" height="2" fill="#ae1c28"/></svg>
+        </button>
+    </nav>
+
     <!-- Escena navideña: guirnalda con luces y la foto familiar colgando en un marco dorado -->
     <header class="escena">
         <div class="guirnalda" aria-hidden="true">
@@ -472,8 +520,8 @@
                     <circle cx="40" cy="22" r="6" fill="#a51a26"/>
                 </svg>
                 <div class="paspartu">
-                    <img src="family.jpeg?v=2" alt="Foto de la familia" width="1600" height="1337" fetchpriority="high">
-                    <p class="leyenda">Navidad en familia · 2026</p>
+                    <img src="family.jpeg?v=2" alt="Foto de la familia" data-i18n-alt="fotoAlt" width="1600" height="1337" fetchpriority="high">
+                    <p class="leyenda" data-i18n="leyenda">Navidad en familia · 2026</p>
                 </div>
             </figure>
 
@@ -492,7 +540,7 @@
         </div>
 
         <div class="titulo-escena">
-            <p class="antetitulo">Intercambio de regalos</p>
+            <p class="antetitulo" data-i18n="antetitulo">Intercambio de regalos</p>
             <h1>Secret <span class="acento">Santa</span></h1>
         </div>
     </header>
@@ -501,70 +549,70 @@
 
         <!-- Cuenta regresiva al sorteo (la fecha está en FECHA_SORTEO, en el script) -->
         <section class="card card-cuenta">
-            <p class="cuenta-titulo" id="cuentaTitulo">Faltan para el sorteo</p>
-            <div class="cuenta" id="cuenta" role="timer" aria-label="Tiempo que falta para el sorteo">
-                <div class="unidad"><b id="cdDias">–</b><span>Días</span></div>
+            <p class="cuenta-titulo" id="cuentaTitulo" data-i18n="cuentaTitulo">Faltan para el sorteo</p>
+            <div class="cuenta" id="cuenta" role="timer" aria-label="Tiempo que falta para el sorteo" data-i18n-aria="cuentaAria">
+                <div class="unidad"><b id="cdDias">–</b><span data-i18n="dias">Días</span></div>
                 <div class="separador" aria-hidden="true">:</div>
-                <div class="unidad"><b id="cdHoras">–</b><span>Horas</span></div>
+                <div class="unidad"><b id="cdHoras">–</b><span data-i18n="horas">Horas</span></div>
                 <div class="separador" aria-hidden="true">:</div>
-                <div class="unidad"><b id="cdMin">–</b><span>Min</span></div>
+                <div class="unidad"><b id="cdMin">–</b><span data-i18n="min">Min</span></div>
                 <div class="separador" aria-hidden="true">:</div>
-                <div class="unidad"><b id="cdSeg">–</b><span>Seg</span></div>
+                <div class="unidad"><b id="cdSeg">–</b><span data-i18n="seg">Seg</span></div>
             </div>
             <div class="datos">
-                <div><small>Sorteo</small><strong>Dom 8 nov<br>8:00 a. m.</strong></div>
-                <div><small>Presupuesto</small><strong id="txtPresupuesto"></strong></div>
-                <div><small>Entrega</small><strong id="txtEntrega"></strong></div>
+                <div><small data-i18n="datoSorteo">Sorteo</small><strong data-i18n-html="fechaSorteoHtml">Dom 8 nov<br>8:00 a. m.</strong></div>
+                <div><small data-i18n="datoPresupuesto">Presupuesto</small><strong id="txtPresupuesto"></strong></div>
+                <div><small data-i18n="datoEntrega">Entrega</small><strong data-i18n="fechaEntrega">24 de diciembre</strong></div>
             </div>
         </section>
 
         <section class="card">
-            <h2 class="titulo-card">Ingresa</h2>
-            <p class="texto-suave">Elige tu nombre y te enviaremos un código de acceso a tu correo.</p>
+            <h2 class="titulo-card" data-i18n="ingresaTitulo">Ingresa</h2>
+            <p class="texto-suave" data-i18n="ingresaTexto">Elige tu nombre y te enviaremos un código de acceso a tu correo.</p>
 
-            <label class="etiqueta" for="participanteSelect">¿Quién eres?</label>
+            <label class="etiqueta" for="participanteSelect" data-i18n="quienEres">¿Quién eres?</label>
             <!-- Las opciones se crean desde la lista PARTICIPANTES del script -->
             <select id="participanteSelect">
-                <option value="">Selecciona tu nombre</option>
+                <option value="" data-i18n="seleccionaNombre">Selecciona tu nombre</option>
             </select>
 
             <!-- Solo aparece la primera vez que alguien entra (cuando aún no tiene correo guardado) -->
             <div id="zonaRegistro" class="hidden">
-                <label class="etiqueta" for="inputCorreo">Es tu primera vez: escribe tu correo</label>
-                <input type="email" id="inputCorreo" placeholder="nombre@correo.com" autocomplete="email" inputmode="email" maxlength="100">
-                <p class="nota">Te enviaremos un código para confirmarlo. Revísalo bien: después no se puede cambiar.</p>
+                <label class="etiqueta" for="inputCorreo" data-i18n="primeraVez">Es tu primera vez: escribe tu correo</label>
+                <input type="email" id="inputCorreo" placeholder="nombre@correo.com" data-i18n-placeholder="correoPlaceholder" autocomplete="email" inputmode="email" maxlength="100">
+                <p class="nota" data-i18n="correoNota">Te enviaremos un código para confirmarlo. Revísalo bien: después no se puede cambiar.</p>
             </div>
 
-            <button id="btnSolicitar">Enviarme el código</button>
-            <button id="btnReenviar" class="secundario hidden">Reenviar código</button>
-            <button id="btnCambiar" class="link hidden">No soy yo / cambiar nombre</button>
+            <button id="btnSolicitar" data-i18n="btnSolicitar">Enviarme el código</button>
+            <button id="btnReenviar" class="secundario hidden" data-i18n="btnReenviar">Reenviar código</button>
+            <button id="btnCambiar" class="link hidden" data-i18n="btnCambiar">No soy yo / cambiar nombre</button>
 
             <p id="msjEstado" class="hidden"></p>
 
             <div id="zonaValidacion" class="seccion hidden">
-                <label class="etiqueta" for="inputPIN">Código de 4 dígitos que llegó a tu correo</label>
+                <label class="etiqueta" for="inputPIN" data-i18n="codigoLabel">Código de 4 dígitos que llegó a tu correo</label>
                 <input type="text" id="inputPIN" class="pin" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
-                <button id="btnValidar">Entrar</button>
+                <button id="btnValidar" data-i18n="btnEntrar">Entrar</button>
             </div>
 
             <div id="zonaRegalo" class="seccion hidden">
-                <p class="saludo">Hola, <span id="nombreConfirmado"></span> 🎄</p>
-                <p class="texto-suave">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
+                <p class="saludo"><span data-i18n="hola">Hola,</span> <span id="nombreConfirmado"></span> 🎄</p>
+                <p class="texto-suave" data-i18n="deseoIntro">Cuéntale a tu amigo secreto qué te gustaría recibir.</p>
 
-                <label class="etiqueta" for="inputDeseo">Mi deseo de regalo</label>
-                <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" disabled></textarea>
+                <label class="etiqueta" for="inputDeseo" data-i18n="deseoLabel">Mi deseo de regalo</label>
+                <textarea id="inputDeseo" rows="3" maxlength="200" placeholder="Ej.: un libro de cocina, una bufanda de lana…" data-i18n-placeholder="deseoPlaceholder" disabled></textarea>
                 <small id="contadorDeseo" class="contador">0/200</small>
-                <button id="btnGuardarDeseo" disabled>Guardar deseo</button>
+                <button id="btnGuardarDeseo" disabled data-i18n="btnGuardarDeseo">Guardar deseo</button>
                 <p id="msjDeseo" class="hidden"></p>
-                <p class="nota" id="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
+                <p class="nota" id="notaPlazo" data-i18n="notaPlazo">Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.</p>
             </div>
 
             <!-- Solo se muestra al ORGANIZADOR. Nunca muestra quién le regala a quién. -->
             <div id="panelOrganizador" class="seccion hidden">
-                <p class="saludo">Panel del organizador</p>
+                <p class="saludo" data-i18n="panelTitulo">Panel del organizador</p>
                 <p class="texto-suave" id="txtModoSorteo"></p>
-                <button id="btnSorteo">🎲 Hacer el sorteo</button>
-                <button id="btnReintentar" class="secundario hidden">Reintentar correos que fallaron</button>
+                <button id="btnSorteo" data-i18n="btnSorteo">🎲 Hacer el sorteo</button>
+                <button id="btnReintentar" class="secundario hidden" data-i18n="btnReintentar">Reintentar correos que fallaron</button>
                 <p id="msjSorteo" class="hidden"></p>
             </div>
         </section>
@@ -572,9 +620,9 @@
         <!-- Solo comparte el enlace de la página; nunca datos secretos (PIN, sorteo) -->
         <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3z"/></svg>
-            Invitar a la familia por WhatsApp
+            <span data-i18n="wpp">Invitar a la familia por WhatsApp</span>
         </a>
-        <p class="pie">Hecho con cariño para la familia</p>
+        <p class="pie" data-i18n="pie">Hecho con cariño para la familia</p>
     </main>
 
     <script type="module">
@@ -593,6 +641,271 @@
         };
 
         const db = getFirestore(initializeApp(firebaseConfig));
+
+        // 0b. IDIOMAS DE LA PÁGINA (español, inglés y neerlandés)
+        //     Los textos fijos del HTML llevan data-i18n="clave" y se traducen con este diccionario.
+        //     Los correos (PIN y sorteo) siguen en español: salen de las plantillas de EmailJS.
+        const IDIOMAS = ["es", "en", "nl"];
+        const TEXTOS = {
+            es: {
+                fotoAlt: "Foto de la familia",
+                leyenda: "Navidad en familia · 2026",
+                antetitulo: "Intercambio de regalos",
+                cuentaTitulo: "Faltan para el sorteo",
+                cuentaAria: "Tiempo que falta para el sorteo",
+                dias: "Días", horas: "Horas", min: "Min", seg: "Seg",
+                datoSorteo: "Sorteo", datoPresupuesto: "Presupuesto", datoEntrega: "Entrega",
+                fechaSorteoHtml: "Dom 8 nov<br>8:00 a. m.",
+                fechaEntrega: "24 de diciembre",
+                diaSorteo: "🎄 ¡Llegó el día del sorteo!",
+                ingresaTitulo: "Ingresa",
+                ingresaTexto: "Elige tu nombre y te enviaremos un código de acceso a tu correo.",
+                quienEres: "¿Quién eres?",
+                seleccionaNombre: "Selecciona tu nombre",
+                primeraVez: "Es tu primera vez: escribe tu correo",
+                correoPlaceholder: "nombre@correo.com",
+                correoNota: "Te enviaremos un código para confirmarlo. Revísalo bien: después no se puede cambiar.",
+                btnSolicitar: "Enviarme el código",
+                btnReenviar: "Reenviar código",
+                esperaReenviar: "Espera {s}s para reenviar",
+                btnCambiar: "No soy yo / cambiar nombre",
+                codigoLabel: "Código de 4 dígitos que llegó a tu correo",
+                btnEntrar: "Entrar",
+                hola: "Hola,",
+                deseoIntro: "Cuéntale a tu amigo secreto qué te gustaría recibir.",
+                deseoLabel: "Mi deseo de regalo",
+                deseoPlaceholder: "Ej.: un libro de cocina, una bufanda de lana…",
+                btnGuardarDeseo: "Guardar deseo",
+                notaPlazo: "Puedes editarlo hasta el domingo 8 de noviembre a las 8:00 a. m.",
+                plazoTerminadoNota: "🔒 El plazo para editar deseos ya terminó.",
+                panelTitulo: "Panel del organizador",
+                modoReal: "Ya es el día: este es el sorteo REAL. Cada participante recibirá su amigo secreto por correo.",
+                modoPrueba: "🧪 Modo prueba (antes del domingo 8, 8:00 a. m.): puedes repetirlo; no se guarda nada en Firebase. Cada prueba gasta 8 correos de EmailJS.",
+                btnSorteo: "🎲 Hacer el sorteo",
+                btnReintentar: "Reintentar correos que fallaron",
+                wpp: "Invitar a la familia por WhatsApp",
+                mensajeWpp: "🎅 ¡Ya está abierto el Secret Santa 2026! Entra, elige tu nombre y registra tu deseo de regalo 🎁",
+                pie: "Hecho con cariño para la familia",
+                errConsultarCorreo: "No se pudo consultar tu correo. {detalle}",
+                selNombre: "Por favor, selecciona tu nombre de la lista.",
+                correoInvalido: "Escribe un correo válido, por ejemplo nombre@gmail.com.",
+                sinCorreo: "No hay un correo registrado para este nombre.",
+                enviandoCodigo: "Enviando código…",
+                errEnvio: "No se pudo enviar el correo. Intenta de nuevo en un momento.{detalle}",
+                codigoEnviado: "Código enviado a {correo} ✅ (revisa también Spam)",
+                primeroSolicita: "Primero debes solicitar el código.",
+                codigoExpirado: "El código expiró (máximo 5 minutos de validez). Usa el botón de reenvío para recibirlo otra vez.",
+                codigoIncorrecto: "Código incorrecto. Intenta nuevamente.",
+                errGuardarCorreo: "Entraste, pero no se pudo guardar tu correo. {detalle} Avísale al organizador.",
+                errPermiso: "La base de datos no lo permitió.",
+                errSinConexion: "Sin conexión con la base de datos. Revisa tu internet.",
+                errGenerico: "Ocurrió un error{codigo}.",
+                cargandoDeseo: "Cargando tu deseo…",
+                errCargarDeseo: "No se pudo cargar tu deseo. {detalle}",
+                validaPrimero: "Primero valida tu código.",
+                escribeDeseo: "Escribe tu deseo antes de guardar.",
+                plazoTerminado: "El plazo para editar deseos ya terminó.",
+                guardando: "Guardando…",
+                deseoGuardado: "¡Deseo guardado! 🎁 Puedes editarlo hasta el día del sorteo.",
+                errGuardarDeseo: "No se pudo guardar tu deseo. {detalle}",
+                confirmRepetir: "⚠️ El sorteo REAL ya se hizo. Si lo repites, todos recibirán un amigo secreto NUEVO. ¿Seguro?",
+                confirmReal: "¿Hacer el sorteo REAL y enviar los correos a toda la familia?",
+                confirmPrueba: "¿Hacer un sorteo de PRUEBA? Se enviarán 8 correos.",
+                leyendoDatos: "Leyendo correos y deseos…",
+                faltanCorreos: "Todavía no han registrado su correo: {nombres}. Pídeles que entren a la página una vez.",
+                sinCombinacion: "No se pudo armar el sorteo con esas parejas excluidas. Revisa PAREJAS_EXCLUIDAS.",
+                enviandoCorreos: "Enviando correos {i}/{total}… No cierres la página.",
+                sorteoListo: "¡Sorteo listo! 🎉 Todos los correos del sorteo fueron enviados.",
+                fallaronCorreos: "Fallaron {n} de {total} correos ({nombres}). Pulsa \"Reintentar\" sin cerrar la página."
+            },
+            en: {
+                fotoAlt: "Family photo",
+                leyenda: "Christmas with the family · 2026",
+                antetitulo: "Gift exchange",
+                cuentaTitulo: "Time until the draw",
+                cuentaAria: "Time left until the draw",
+                dias: "Days", horas: "Hours", min: "Min", seg: "Sec",
+                datoSorteo: "Draw", datoPresupuesto: "Budget", datoEntrega: "Gift day",
+                fechaSorteoHtml: "Sun, Nov 8<br>8:00 a.m.",
+                fechaEntrega: "December 24",
+                diaSorteo: "🎄 Draw day is here!",
+                ingresaTitulo: "Sign in",
+                ingresaTexto: "Choose your name and we'll email you an access code.",
+                quienEres: "Who are you?",
+                seleccionaNombre: "Select your name",
+                primeraVez: "First time here? Enter your email",
+                correoPlaceholder: "name@email.com",
+                correoNota: "We'll send you a code to confirm it. Double-check it: it can't be changed later.",
+                btnSolicitar: "Send me the code",
+                btnReenviar: "Resend code",
+                esperaReenviar: "Wait {s}s to resend",
+                btnCambiar: "Not me / change name",
+                codigoLabel: "4-digit code we sent to your email",
+                btnEntrar: "Sign in",
+                hola: "Hi,",
+                deseoIntro: "Tell your Secret Santa what you'd like to receive.",
+                deseoLabel: "My gift wish",
+                deseoPlaceholder: "E.g. a cookbook, a wool scarf…",
+                btnGuardarDeseo: "Save wish",
+                notaPlazo: "You can edit it until Sunday, November 8 at 8:00 a.m.",
+                plazoTerminadoNota: "🔒 The deadline to edit wishes has passed.",
+                panelTitulo: "Organizer panel",
+                modoReal: "It's the day: this is the REAL draw. Each participant will get their Secret Santa by email.",
+                modoPrueba: "🧪 Test mode (before Sunday 8, 8:00 a.m.): you can repeat it; nothing is saved in Firebase. Each test uses 8 EmailJS emails.",
+                btnSorteo: "🎲 Run the draw",
+                btnReintentar: "Retry failed emails",
+                wpp: "Invite the family on WhatsApp",
+                mensajeWpp: "🎅 Secret Santa 2026 is open! Go in, choose your name and add your gift wish 🎁",
+                pie: "Made with love for the family",
+                errConsultarCorreo: "We couldn't look up your email. {detalle}",
+                selNombre: "Please select your name from the list.",
+                correoInvalido: "Enter a valid email, for example name@gmail.com.",
+                sinCorreo: "There is no email registered for this name.",
+                enviandoCodigo: "Sending code…",
+                errEnvio: "We couldn't send the email. Please try again in a moment.{detalle}",
+                codigoEnviado: "Code sent to {correo} ✅ (check your Spam folder too)",
+                primeroSolicita: "Please request the code first.",
+                codigoExpirado: "The code has expired (valid for 5 minutes). Use the resend button to get it again.",
+                codigoIncorrecto: "Wrong code. Please try again.",
+                errGuardarCorreo: "You're in, but we couldn't save your email. {detalle} Please let the organizer know.",
+                errPermiso: "The database didn't allow it.",
+                errSinConexion: "No connection to the database. Check your internet.",
+                errGenerico: "Something went wrong{codigo}.",
+                cargandoDeseo: "Loading your wish…",
+                errCargarDeseo: "We couldn't load your wish. {detalle}",
+                validaPrimero: "Please confirm your code first.",
+                escribeDeseo: "Write your wish before saving.",
+                plazoTerminado: "The deadline to edit wishes has passed.",
+                guardando: "Saving…",
+                deseoGuardado: "Wish saved! 🎁 You can edit it until draw day.",
+                errGuardarDeseo: "We couldn't save your wish. {detalle}",
+                confirmRepetir: "⚠️ The REAL draw has already been done. If you repeat it, everyone will get a NEW Secret Santa. Are you sure?",
+                confirmReal: "Run the REAL draw and send the emails to the whole family?",
+                confirmPrueba: "Run a TEST draw? 8 emails will be sent.",
+                leyendoDatos: "Reading emails and wishes…",
+                faltanCorreos: "These people haven't registered their email yet: {nombres}. Ask them to open the page once.",
+                sinCombinacion: "The draw can't be made with those excluded pairs. Check PAREJAS_EXCLUIDAS.",
+                enviandoCorreos: "Sending emails {i}/{total}… Don't close the page.",
+                sorteoListo: "Draw done! 🎉 All the draw emails have been sent.",
+                fallaronCorreos: "{n} of {total} emails failed ({nombres}). Press \"Retry\" without closing the page."
+            },
+            nl: {
+                fotoAlt: "Familiefoto",
+                leyenda: "Kerst met de familie · 2026",
+                antetitulo: "Cadeautjesruil",
+                cuentaTitulo: "Nog tot de loting",
+                cuentaAria: "Resterende tijd tot de loting",
+                dias: "Dagen", horas: "Uren", min: "Min", seg: "Sec",
+                datoSorteo: "Loting", datoPresupuesto: "Budget", datoEntrega: "Cadeaudag",
+                fechaSorteoHtml: "Zo 8 nov<br>8:00 uur",
+                fechaEntrega: "24 december",
+                diaSorteo: "🎄 Het is de dag van de loting!",
+                ingresaTitulo: "Inloggen",
+                ingresaTexto: "Kies je naam en we sturen je een toegangscode per e-mail.",
+                quienEres: "Wie ben jij?",
+                seleccionaNombre: "Kies je naam",
+                primeraVez: "Eerste keer? Vul je e-mailadres in",
+                correoPlaceholder: "naam@email.com",
+                correoNota: "We sturen je een code om het te bevestigen. Controleer het goed: je kunt het later niet meer wijzigen.",
+                btnSolicitar: "Stuur mij de code",
+                btnReenviar: "Code opnieuw sturen",
+                esperaReenviar: "Wacht {s}s om opnieuw te sturen",
+                btnCambiar: "Ben ik niet / naam wijzigen",
+                codigoLabel: "Code van 4 cijfers uit je e-mail",
+                btnEntrar: "Inloggen",
+                hola: "Hoi,",
+                deseoIntro: "Vertel je Secret Santa wat je graag zou willen krijgen.",
+                deseoLabel: "Mijn cadeauwens",
+                deseoPlaceholder: "Bijv. een kookboek, een wollen sjaal…",
+                btnGuardarDeseo: "Wens opslaan",
+                notaPlazo: "Je kunt het aanpassen tot zondag 8 november, 8:00 uur.",
+                plazoTerminadoNota: "🔒 De deadline om wensen aan te passen is voorbij.",
+                panelTitulo: "Organisatorpaneel",
+                modoReal: "Het is zover: dit is de ECHTE loting. Iedereen krijgt zijn Secret Santa per e-mail.",
+                modoPrueba: "🧪 Testmodus (vóór zondag 8, 8:00 uur): je kunt het herhalen; er wordt niets opgeslagen in Firebase. Elke test kost 8 EmailJS-mails.",
+                btnSorteo: "🎲 Loting starten",
+                btnReintentar: "Mislukte e-mails opnieuw proberen",
+                wpp: "Familie uitnodigen via WhatsApp",
+                mensajeWpp: "🎅 Secret Santa 2026 is geopend! Ga naar de pagina, kies je naam en vul je cadeauwens in 🎁",
+                pie: "Met liefde gemaakt voor de familie",
+                errConsultarCorreo: "We konden je e-mailadres niet opzoeken. {detalle}",
+                selNombre: "Kies je naam uit de lijst.",
+                correoInvalido: "Vul een geldig e-mailadres in, bijvoorbeeld naam@gmail.com.",
+                sinCorreo: "Er is geen e-mailadres geregistreerd voor deze naam.",
+                enviandoCodigo: "Code wordt verstuurd…",
+                errEnvio: "De e-mail kon niet worden verstuurd. Probeer het zo opnieuw.{detalle}",
+                codigoEnviado: "Code verstuurd naar {correo} ✅ (kijk ook in je spam)",
+                primeroSolicita: "Vraag eerst de code aan.",
+                codigoExpirado: "De code is verlopen (5 minuten geldig). Gebruik de knop om hem opnieuw te sturen.",
+                codigoIncorrecto: "Onjuiste code. Probeer het opnieuw.",
+                errGuardarCorreo: "Je bent binnen, maar je e-mailadres kon niet worden opgeslagen. {detalle} Laat het de organisator weten.",
+                errPermiso: "De database stond het niet toe.",
+                errSinConexion: "Geen verbinding met de database. Controleer je internet.",
+                errGenerico: "Er ging iets mis{codigo}.",
+                cargandoDeseo: "Je wens wordt geladen…",
+                errCargarDeseo: "Je wens kon niet worden geladen. {detalle}",
+                validaPrimero: "Bevestig eerst je code.",
+                escribeDeseo: "Schrijf je wens voordat je opslaat.",
+                plazoTerminado: "De deadline om wensen aan te passen is voorbij.",
+                guardando: "Opslaan…",
+                deseoGuardado: "Wens opgeslagen! 🎁 Je kunt hem aanpassen tot de dag van de loting.",
+                errGuardarDeseo: "Je wens kon niet worden opgeslagen. {detalle}",
+                confirmRepetir: "⚠️ De ECHTE loting is al gedaan. Als je hem herhaalt, krijgt iedereen een NIEUWE Secret Santa. Weet je het zeker?",
+                confirmReal: "De ECHTE loting doen en de e-mails naar de hele familie sturen?",
+                confirmPrueba: "Een TEST-loting doen? Er worden 8 e-mails verstuurd.",
+                leyendoDatos: "E-mailadressen en wensen worden gelezen…",
+                faltanCorreos: "Deze mensen hebben hun e-mailadres nog niet geregistreerd: {nombres}. Vraag ze de pagina één keer te openen.",
+                sinCombinacion: "Met deze uitgesloten paren lukt de loting niet. Controleer PAREJAS_EXCLUIDAS.",
+                enviandoCorreos: "E-mails versturen {i}/{total}… Sluit de pagina niet.",
+                sorteoListo: "Loting klaar! 🎉 Alle e-mails van de loting zijn verstuurd.",
+                fallaronCorreos: "{n} van de {total} e-mails mislukt ({nombres}). Druk op \"Opnieuw proberen\" zonder de pagina te sluiten."
+            }
+        };
+
+        function idiomaInicial() {
+            try {
+                const guardado = localStorage.getItem("idioma");
+                if (IDIOMAS.includes(guardado)) return guardado;
+            } catch (e) { /* sin almacenamiento: se usa el del navegador */ }
+            const delNavegador = (navigator.language || "es").slice(0, 2).toLowerCase();
+            return IDIOMAS.includes(delNavegador) ? delNavegador : "es";
+        }
+        let idioma = idiomaInicial();
+
+        // Texto traducido; {variables} se reemplazan (si la variable es una función, se llama al mostrar)
+        function t(clave, vars = {}) {
+            const texto = TEXTOS[idioma][clave] ?? TEXTOS.es[clave] ?? clave;
+            return texto.replace(/\{(\w+)\}/g, (_, nombre) => {
+                const valor = vars[nombre];
+                return typeof valor === "function" ? valor() : (valor ?? "");
+            });
+        }
+
+        // Último mensaje de cada recuadro, para volver a mostrarlo en el idioma nuevo
+        const mensajesVisibles = {};
+
+        function cambiarIdioma(nuevo) {
+            idioma = nuevo;
+            try { localStorage.setItem("idioma", nuevo); } catch (e) { /* no pasa nada si no se puede guardar */ }
+            aplicarIdioma();
+        }
+
+        function aplicarIdioma() {
+            document.documentElement.lang = idioma;
+            document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+            document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+            document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+            document.querySelectorAll("[data-i18n-alt]").forEach(el => { el.alt = t(el.dataset.i18nAlt); });
+            document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+            document.querySelectorAll(".btn-idioma").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.idioma === idioma)));
+            for (const [id, m] of Object.entries(mensajesVisibles)) {
+                if ($(id).className !== "hidden") $(id).innerText = t(m.clave, m.vars);
+            }
+            actualizarCuenta();
+            actualizarWhatsApp();
+            if (usuarioValidado) actualizarPlazoDeseo();
+            if (!$("panelOrganizador").classList.contains("hidden")) mostrarPanelOrganizador();
+        }
 
         // 1. CREDENCIALES DE EMAILJS (dashboard.emailjs.com)
         //    La Public Key está pensada para ir en el navegador; no es un secreto.
@@ -660,9 +973,11 @@
 
         const $ = (id) => document.getElementById(id);
 
-        function mostrarEstado(texto, tipo, idMensaje = "msjEstado") {
+        // Muestra un mensaje traducido (clave del diccionario TEXTOS) en un recuadro
+        function mostrarEstado(clave, tipo, idMensaje = "msjEstado", vars = {}) {
+            mensajesVisibles[idMensaje] = { clave, vars };
             const msj = $(idMensaje);
-            msj.innerText = texto;
+            msj.innerText = t(clave, vars);
             msj.className = tipo; // "success" o "error"
         }
 
@@ -708,7 +1023,7 @@
                 }
             } catch (error) {
                 console.error("Error de Firestore:", error);
-                mostrarEstado(`No se pudo consultar tu correo. ${explicarErrorFirebase(error)}`, "error");
+                mostrarEstado("errConsultarCorreo", "error", "msjEstado", { detalle: () => explicarErrorFirebase(error) });
             }
             btn.disabled = false;
         }
@@ -717,7 +1032,7 @@
         async function gestionarPIN() {
             usuarioActual = $("participanteSelect").value;
             if (!usuarioActual) {
-                mostrarEstado("Por favor, selecciona tu nombre de la lista.", "error");
+                mostrarEstado("selNombre", "error");
                 return;
             }
 
@@ -725,7 +1040,7 @@
             if (correoEsNuevo && !$("inputCorreo").disabled) {
                 const escrito = $("inputCorreo").value.trim().toLowerCase();
                 if (!FORMATO_CORREO.test(escrito)) {
-                    mostrarEstado("Escribe un correo válido, por ejemplo nombre@gmail.com.", "error");
+                    mostrarEstado("correoInvalido", "error");
                     return;
                 }
                 if (escrito !== correoActual) pinActual = null; // correo distinto: PIN nuevo
@@ -734,7 +1049,7 @@
 
             const correo = correoActual;
             if (!correo) {
-                mostrarEstado("No hay un correo registrado para este nombre.", "error");
+                mostrarEstado("sinCorreo", "error");
                 return;
             }
 
@@ -751,7 +1066,7 @@
             const btnReenviar = $("btnReenviar");
             btnSolicitar.disabled = true;
             btnReenviar.disabled = true;
-            mostrarEstado("Enviando PIN…", "success");
+            mostrarEstado("enviandoCodigo", "success");
 
             try {
                 await enviarCorreo(usuarioActual, correo, pinActual);
@@ -759,14 +1074,14 @@
                 console.error("Error de EmailJS:", error);
                 // EmailJS devuelve { status, text }; mostrar el texto ayuda a detectar credenciales mal copiadas
                 const detalle = error && error.text ? ` (${error.text})` : "";
-                mostrarEstado(`No se pudo enviar el correo. Intenta de nuevo en un momento.${detalle}`, "error");
+                mostrarEstado("errEnvio", "error", "msjEstado", { detalle });
                 btnSolicitar.disabled = false;
                 btnReenviar.disabled = false;
                 return; // sin cooldown si el envío falló
             }
 
             tiempoUltimoEnvio = ahora;
-            mostrarEstado(`PIN enviado a ${ocultarCorreo(correo)} ✅ (revisa también Spam)`, "success");
+            mostrarEstado("codigoEnviado", "success", "msjEstado", { correo: ocultarCorreo(correo) });
 
             // Bloquear el selector (y el correo nuevo) mientras haya un PIN en curso
             $("participanteSelect").disabled = true;
@@ -789,15 +1104,15 @@
             let restante = COOLDOWN_SEG;
             clearInterval(temporizador);
             btn.disabled = true;
-            btn.innerText = `Espera ${restante}s para reenviar`;
+            btn.innerText = t("esperaReenviar", { s: restante });
 
             temporizador = setInterval(() => {
                 restante--;
-                btn.innerText = `Espera ${restante}s para reenviar`;
+                btn.innerText = t("esperaReenviar", { s: restante });
                 if (restante <= 0) {
                     clearInterval(temporizador);
                     btn.disabled = false;
-                    btn.innerText = "Reenviar código";
+                    btn.innerText = t("btnReenviar");
                 }
             }, 1000);
         }
@@ -834,12 +1149,12 @@
             const pinIngresado = $("inputPIN").value.trim();
 
             if (!pinActual) {
-                mostrarEstado("Primero debes solicitar el PIN.", "error");
+                mostrarEstado("primeroSolicita", "error");
                 return;
             }
 
             if (Date.now() - tiempoUltimoEnvio > VIGENCIA_PIN_MS) {
-                mostrarEstado("El PIN expiró (máximo 5 minutos de validez). Usa el botón de reenvío para recibirlo otra vez.", "error");
+                mostrarEstado("codigoExpirado", "error");
                 return;
             }
 
@@ -854,7 +1169,7 @@
                 cargarDeseo();
                 if (usuarioValidado === ORGANIZADOR) mostrarPanelOrganizador();
             } else {
-                mostrarEstado("PIN incorrecto. Intenta nuevamente.", "error");
+                mostrarEstado("codigoIncorrecto", "error");
             }
         }
 
@@ -866,7 +1181,7 @@
                 correoEsNuevo = false;
             } catch (error) {
                 console.error("Error de Firestore:", error);
-                mostrarEstado(`Entraste, pero no se pudo guardar tu correo. ${explicarErrorFirebase(error)} Avísale al organizador.`, "error", "msjDeseo");
+                mostrarEstado("errGuardarCorreo", "error", "msjDeseo", { detalle: () => explicarErrorFirebase(error) });
             }
         }
 
@@ -876,24 +1191,24 @@
         // Firestore devuelve códigos como "permission-denied"; los traducimos a algo entendible
         function explicarErrorFirebase(error) {
             if (error && error.code === "permission-denied") {
-                return "La base de datos no lo permitió.";
+                return t("errPermiso");
             }
             if (error && error.code === "unavailable") {
-                return "Sin conexión con la base de datos. Revisa tu internet.";
+                return t("errSinConexion");
             }
-            return `Ocurrió un error${error && error.code ? ` (${error.code})` : ""}.`;
+            return t("errGenerico", { codigo: error && error.code ? ` (${error.code})` : "" });
         }
 
         async function cargarDeseo() {
             const input = $("inputDeseo");
-            mostrarEstado("Cargando tu deseo…", "success", "msjDeseo");
+            mostrarEstado("cargandoDeseo", "success", "msjDeseo");
             try {
                 const docDeseo = await getDoc(doc(db, "deseos", usuarioValidado));
                 input.value = docDeseo.exists() ? docDeseo.data().deseo : "";
                 $("msjDeseo").className = "hidden";
             } catch (error) {
                 console.error("Error de Firestore:", error);
-                mostrarEstado(`No se pudo cargar tu deseo. ${explicarErrorFirebase(error)}`, "error", "msjDeseo");
+                mostrarEstado("errCargarDeseo", "error", "msjDeseo", { detalle: () => explicarErrorFirebase(error) });
             }
             actualizarContador();
             actualizarPlazoDeseo();
@@ -904,37 +1219,37 @@
             const cerrado = plazoCerrado();
             $("inputDeseo").disabled = cerrado;
             $("btnGuardarDeseo").disabled = cerrado;
-            if (cerrado) $("notaPlazo").innerText = "🔒 El plazo para editar deseos ya terminó.";
+            if (cerrado) $("notaPlazo").innerText = t("plazoTerminadoNota");
         }
 
         async function guardarDeseo() {
             const deseo = $("inputDeseo").value.trim();
             if (!usuarioValidado) {
-                mostrarEstado("Primero valida tu PIN.", "error", "msjDeseo");
+                mostrarEstado("validaPrimero", "error", "msjDeseo");
                 return;
             }
             if (!deseo) {
-                mostrarEstado("Escribe tu deseo antes de guardar.", "error", "msjDeseo");
+                mostrarEstado("escribeDeseo", "error", "msjDeseo");
                 return;
             }
             if (plazoCerrado()) {
                 actualizarPlazoDeseo();
-                mostrarEstado("El plazo para editar deseos ya terminó.", "error", "msjDeseo");
+                mostrarEstado("plazoTerminado", "error", "msjDeseo");
                 return;
             }
 
             const btn = $("btnGuardarDeseo");
             btn.disabled = true;
-            mostrarEstado("Guardando…", "success", "msjDeseo");
+            mostrarEstado("guardando", "success", "msjDeseo");
             try {
                 await setDoc(doc(db, "deseos", usuarioValidado), {
                     deseo: deseo.slice(0, MAX_DESEO),
                     actualizado: serverTimestamp()
                 });
-                mostrarEstado("¡Deseo guardado! 🎁 Puedes editarlo hasta el día del sorteo.", "success", "msjDeseo");
+                mostrarEstado("deseoGuardado", "success", "msjDeseo");
             } catch (error) {
                 console.error("Error de Firestore:", error);
-                mostrarEstado(`No se pudo guardar tu deseo. ${explicarErrorFirebase(error)}`, "error", "msjDeseo");
+                mostrarEstado("errGuardarDeseo", "error", "msjDeseo", { detalle: () => explicarErrorFirebase(error) });
             }
             btn.disabled = false;
         }
@@ -1005,9 +1320,7 @@
         let correosPendientes = [];   // envíos que fallaron, solo en memoria (para reintentar)
 
         function mostrarPanelOrganizador() {
-            $("txtModoSorteo").innerText = plazoCerrado()
-                ? "Ya es el día: este es el sorteo REAL. Cada participante recibirá su amigo secreto por correo."
-                : "🧪 Modo prueba (antes del domingo 8, 8:00 a. m.): puedes repetirlo; no se guarda nada en Firebase. Cada prueba gasta 8 correos de EmailJS.";
+            $("txtModoSorteo").innerText = t(plazoCerrado() ? "modoReal" : "modoPrueba");
             $("panelOrganizador").classList.remove("hidden");
         }
 
@@ -1021,21 +1334,19 @@
                 try {
                     const config = await getDoc(doc(db, "config", "sorteo"));
                     if (config.exists() && config.data().realizado === true &&
-                        !confirm("⚠️ El sorteo REAL ya se hizo. Si lo repites, todos recibirán un amigo secreto NUEVO. ¿Seguro?")) {
+                        !confirm(t("confirmRepetir"))) {
                         return;
                     }
                 } catch (error) {
                     console.error("Error de Firestore:", error);
                 }
             }
-            const aviso = esReal
-                ? "¿Hacer el sorteo REAL y enviar los correos a toda la familia?"
-                : "¿Hacer un sorteo de PRUEBA? Se enviarán 8 correos.";
+            const aviso = t(esReal ? "confirmReal" : "confirmPrueba");
             if (!confirm(aviso)) return;
 
             btn.disabled = true;
             $("btnReintentar").classList.add("hidden");
-            mostrarEstado("Leyendo correos y deseos…", "success", "msjSorteo");
+            mostrarEstado("leyendoDatos", "success", "msjSorteo");
 
             const nombres = [...PARTICIPANTES];
             const correosSorteo = {};
@@ -1057,14 +1368,14 @@
             // Sin correo no hay cómo avisarle a esa persona: no se hace el sorteo hasta que todos se registren
             const sinCorreo = nombres.filter(nombre => !correosSorteo[nombre]);
             if (sinCorreo.length > 0) {
-                mostrarEstado(`Todavía no han registrado su correo: ${sinCorreo.join(", ")}. Pídeles que entren a la página una vez.`, "error", "msjSorteo");
+                mostrarEstado("faltanCorreos", "error", "msjSorteo", { nombres: sinCorreo.join(", ") });
                 btn.disabled = false;
                 return;
             }
 
             const asignaciones = generarAsignaciones(nombres);
             if (!asignaciones) {
-                mostrarEstado("No se pudo armar el sorteo con esas parejas excluidas. Revisa PAREJAS_EXCLUIDAS.", "error", "msjSorteo");
+                mostrarEstado("sinCombinacion", "error", "msjSorteo");
                 btn.disabled = false;
                 return;
             }
@@ -1096,7 +1407,7 @@
             const total = correosPendientes.length;
             const fallidos = [];
             for (let i = 0; i < total; i++) {
-                mostrarEstado(`Enviando correos ${i + 1}/${total}… No cierres la página.`, "success", "msjSorteo");
+                mostrarEstado("enviandoCorreos", "success", "msjSorteo", { i: i + 1, total });
                 try {
                     await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_SORTEO, correosPendientes[i],
                         { limitRate: { id: "sorteo", throttle: 1500 } });
@@ -1109,12 +1420,12 @@
             correosPendientes = fallidos;
 
             if (fallidos.length === 0) {
-                mostrarEstado("¡Sorteo listo! 🎉 Todos los correos del sorteo fueron enviados.", "success", "msjSorteo");
+                mostrarEstado("sorteoListo", "success", "msjSorteo");
                 $("btnReintentar").classList.add("hidden");
             } else {
                 // Mostrar a quién no le llegó no revela el sorteo (solo el destinatario, no su amigo secreto)
                 const nombresFallidos = fallidos.map(c => c.to_name).join(", ");
-                mostrarEstado(`Fallaron ${fallidos.length} de ${total} correos (${nombresFallidos}). Pulsa "Reintentar" sin cerrar la página.`, "error", "msjSorteo");
+                mostrarEstado("fallaronCorreos", "error", "msjSorteo", { n: fallidos.length, total, nombres: nombresFallidos });
                 $("btnReintentar").classList.remove("hidden");
             }
         }
@@ -1155,8 +1466,10 @@
         // 9. COMPARTIR POR WHATSAPP (enlace wa.me: abre WhatsApp con el mensaje escrito; la persona pulsa Enviar)
         //    Se usa la dirección actual de la página, sin parámetros, así funciona igual en GitHub Pages.
         const urlPagina = location.origin + location.pathname;
-        const mensajeWpp = `🎅 ¡Ya está abierto el Secret Santa 2026! Entra, elige tu nombre y registra tu deseo de regalo 🎁\n${urlPagina}`;
-        $("btnWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(mensajeWpp);
+        function actualizarWhatsApp() {
+            const mensajeWpp = `${t("mensajeWpp")}\n${urlPagina}`;
+            $("btnWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(mensajeWpp);
+        }
 
         // 10. CUENTA REGRESIVA AL SORTEO
         let temporizadorCuenta = null;
@@ -1166,7 +1479,7 @@
             if (restante <= 0) {
                 clearInterval(temporizadorCuenta);
                 $("cuenta").classList.add("hidden");
-                $("cuentaTitulo").innerHTML = "<strong>🎄 ¡Llegó el día del sorteo!</strong>";
+                $("cuentaTitulo").innerHTML = `<strong>${t("diaSorteo")}</strong>`;
                 if (usuarioValidado) actualizarPlazoDeseo();
                 return;
             }
@@ -1180,7 +1493,12 @@
         actualizarCuenta();
         temporizadorCuenta = setInterval(actualizarCuenta, 1000);
         $("txtPresupuesto").innerText = PRESUPUESTO;
-        $("txtEntrega").innerText = FECHA_ENTREGA;
+
+        // 11. IDIOMA: botones de banderas y traducción inicial
+        document.querySelectorAll(".btn-idioma").forEach(b => {
+            b.addEventListener("click", () => cambiarIdioma(b.dataset.idioma));
+        });
+        aplicarIdioma();
     </script>
 </body>
 </html>

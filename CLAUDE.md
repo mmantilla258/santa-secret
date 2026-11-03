@@ -18,7 +18,10 @@ confirmación antes de decisiones que no se puedan deshacer.
     · `config/sorteo` = `{ realizado, fecha }`.
   - Las reglas viven en `firestore.rules` (copia en el repo); Miguel las pega a mano en la consola de Firebase.
     Si se cambian, recordarle que las vuelva a publicar.
-- Idioma: toda la interfaz, mensajes y comentarios del código en **español**.
+- Idioma: comentarios del código en **español**. La página tiene selector de idioma (banderas arriba a la izquierda):
+  **español, inglés y neerlandés**. Todo texto visible va en el diccionario `TEXTOS` (claves `es`/`en`/`nl`) y se usa
+  con `data-i18n="clave"` en el HTML o `t("clave")` / `mostrarEstado("clave", …)` en el script: al agregar un texto,
+  traducirlo a los tres. Los correos (plantillas de EmailJS) siguen solo en español.
 - Debe verse bien en celular (la mayoría de familiares entrará desde el teléfono).
 
 ## Seguridad (obligatorio)
