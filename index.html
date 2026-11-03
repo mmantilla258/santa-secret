@@ -7,163 +7,257 @@
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #333; color: white; padding: 20px; }
         .card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; max-width: 400px; margin: auto; }
-        select, input, button { width: 90%; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; font-size: 16px; }
-        button { background: #25D366; color: white; cursor: pointer; font-weight: bold; }
+        select, input, button { width: 90%; margin: 10px 0; padding: 10px; border-radius: 5px; border: none; font-size: 16px; box-sizing: border-box; }
+        button { background: #c0392b; color: white; cursor: pointer; font-weight: bold; }
         button:disabled { background: #555; cursor: not-allowed; }
         .hidden { display: none; }
-        .success { color: #25D366; font-weight: bold; }
+        .success { color: #2ecc71; font-weight: bold; }
+        .error { color: #ff7675; font-weight: bold; }
+        .link { background: none; color: #ccc; text-decoration: underline; font-weight: normal; font-size: 14px; }
+        .boton-wpp { display: inline-block; width: 90%; margin: 20px 0 0; padding: 10px; border-radius: 5px; font-size: 16px; box-sizing: border-box;
+                     background: #25D366; color: white; font-weight: bold; text-decoration: none; }
     </style>
+    <!-- SDK de EmailJS (versión fija + huella "integrity": si el archivo del CDN cambia, el navegador no lo ejecuta) -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"
+            integrity="sha256-BS9pFqIbpb4UA2ZDnoG4StETY8hN+6KgbyCMe0pvbV8="
+            crossorigin="anonymous"></script>
 </head>
 <body>
 
     <div class="card">
         <h2>🎅 Secret Santa 2026 🎁</h2>
-        
+
         <select id="participanteSelect">
             <option value="">Selecciona tu nombre</option>
+            <!-- El value debe coincidir EXACTAMENTE con la clave en el objeto "correos" del script -->
             <option value="Miguel">Miguel</option>
             <option value="Familiar2">Familiar 2</option>
-            <!-- Agrega el resto de los 8 familiares aquí -->
+            <option value="Familiar3">Familiar 3</option>
+            <option value="Familiar4">Familiar 4</option>
+            <option value="Familiar5">Familiar 5</option>
+            <option value="Familiar6">Familiar 6</option>
+            <option value="Familiar7">Familiar 7</option>
+            <option value="Familiar8">Familiar 8</option>
         </select>
 
-        <button id="btnSolicitar" onclick="gestionarPIN()">📱 Solicitar PIN</button>
-        <button id="btnReenviar" class="hidden" onclick="gestionarPIN()">Reenviar código</button>
-        
+        <button id="btnSolicitar">✉️ Solicitar PIN</button>
+        <button id="btnReenviar" class="hidden">Reenviar código</button>
+        <button id="btnCambiar" class="link hidden">No soy yo / cambiar nombre</button>
+
         <p id="msjEstado" class="hidden"></p>
 
         <div id="zonaValidacion" class="hidden">
-            <p>Ingresa el PIN de 4 dígitos que llegó a tu WhatsApp</p>
-            <input type="text" id="inputPIN" placeholder="PIN secreto" maxlength="4">
-            <button onclick="validarPIN()">🔓 Validar</button>
+            <p>Ingresa el PIN de 4 dígitos que llegó a tu correo</p>
+            <input type="text" id="inputPIN" placeholder="PIN secreto" maxlength="4" inputmode="numeric" autocomplete="one-time-code">
+            <button id="btnValidar">🔓 Validar</button>
         </div>
 
         <div id="zonaRegalo" class="hidden">
-            <p>¡Identidad confirmada!</p>
-            <!-- Aquí va tu código de Firebase para guardar el regalo o hacer el sorteo -->
+            <p>¡Identidad confirmada, <span id="nombreConfirmado"></span>!</p>
+            <!-- Aquí irá Firebase: guardar el regalo y ver el resultado del sorteo -->
         </div>
+
+        <!-- Solo comparte el enlace de la página; nunca datos secretos (PIN, sorteo) -->
+        <a id="btnWhatsApp" class="boton-wpp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
     </div>
 
     <script>
-        // 1. CREDENCIALES DE META
-        const token = "TOKEN_ELIMINADO";
-        const phoneId = "ID_ELIMINADO";
+        // 1. CREDENCIALES DE EMAILJS (dashboard.emailjs.com)
+        //    La Public Key está pensada para ir en el navegador; no es un secreto.
+        const EMAILJS_PUBLIC_KEY  = "7QYQQLtJAtbll1gS8";  // Account > General > Public Key
+        const EMAILJS_SERVICE_ID  = "service_8ds6axn";    // Email Services > (tu Gmail) > Service ID
+        const EMAILJS_TEMPLATE_ID = "template_d9hos9c";   // Email Templates > (plantilla del PIN) > Template ID
+        const EMAILJS_TEMPLATE_SORTEO = "template_6p3w9ov"; // Email Templates > (plantilla del sorteo) > Template ID (se usará en el sorteo)
 
-        // 2. NÚMEROS DE TELÉFONO (Agrega el indicativo 57)
-        const telefonos = {
-            "Miguel": "+00000000000",
-            "Familiar2": "+00000000000" // Cambiar por los reales cuando uses el número virtual
+        emailjs.init({
+            publicKey: EMAILJS_PUBLIC_KEY,
+            limitRate: { id: "secret-santa", throttle: 10000 } // máx. 1 envío cada 10 s por navegador
+        });
+
+        // 2. CORREOS DE LOS PARTICIPANTES
+        //    OJO: el repositorio es público; lo que pongas aquí y subas a GitHub lo puede ver cualquiera.
+        //    Cuando se integre Firebase, estos correos se moverán a Firestore.
+        const correos = {
+            "Miguel":    "mmantilla258@gmail.com",
+            "Familiar2": "familiar2@ejemplo.com",
+            "Familiar3": "familiar3@ejemplo.com",
+            "Familiar4": "familiar4@ejemplo.com",
+            "Familiar5": "familiar5@ejemplo.com",
+            "Familiar6": "familiar6@ejemplo.com",
+            "Familiar7": "familiar7@ejemplo.com",
+            "Familiar8": "familiar8@ejemplo.com"
         };
 
-        // 3. VARIABLES DE CONTROL DE TIEMPO
+        // 3. CONSTANTES Y ESTADO
+        const VIGENCIA_PIN_MS   = 5 * 60 * 1000; // el PIN vale 5 min desde el último envío
+        const REGENERAR_PIN_MS  = 8 * 60 * 1000; // a los 8 min del primer envío se crea uno nuevo
+        const COOLDOWN_SEG      = 60;
+
         let pinActual = null;
+        let pinUsuario = "";        // a quién pertenece el PIN actual
         let tiempoPrimerEnvio = 0;
         let tiempoUltimoEnvio = 0;
         let usuarioActual = "";
+        let temporizador = null;
 
-        // 4. FUNCIÓN PARA ENVIAR WHATSAPP (API META)
-        async function enviarWhatsApp(telefono, mensaje) {
-            const numero = telefono.replace("+", ""); 
-            const url = `https://graph.facebook.com/v25.0/${phoneId}/messages`;
+        const $ = (id) => document.getElementById(id);
 
-            try {
-                await fetch(url, {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": `Bearer ${token}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ 
-                        messaging_product: "whatsapp", 
-                        recipient_type: "individual", 
-                        to: numero, 
-                        type: "text", 
-                        text: { body: mensaje } 
-                    })
-                });
-            } catch (error) {
-                console.error("Error al enviar WhatsApp:", error);
-            }
+        function mostrarEstado(texto, tipo) {
+            const msj = $("msjEstado");
+            msj.innerText = texto;
+            msj.className = tipo; // "success" o "error"
         }
 
-        // 5. LÓGICA DE CREACIÓN, TIEMPOS Y ENVÍO DEL PIN
+        // 4. ENVÍO DEL CORREO
+        async function enviarCorreo(nombre, correo, pin) {
+            // Los nombres de estas variables deben coincidir con {{...}} en tu plantilla de EmailJS
+            return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                to_name:  nombre,
+                to_email: correo,
+                pin:      pin,
+                minutos:  5
+            });
+        }
+
+        // 5. GENERACIÓN, TIEMPOS Y ENVÍO DEL PIN
         async function gestionarPIN() {
-            const select = document.getElementById("participanteSelect");
-            usuarioActual = select.value;
-            
+            usuarioActual = $("participanteSelect").value;
             if (!usuarioActual) {
-                alert("Por favor, selecciona tu nombre de la lista.");
+                mostrarEstado("Por favor, selecciona tu nombre de la lista.", "error");
                 return;
             }
 
-            const telefono = telefonos[usuarioActual];
-            const ahora = Date.now();
-            const btnSolicitar = document.getElementById("btnSolicitar");
-            const btnReenviar = document.getElementById("btnReenviar");
-            const msjEstado = document.getElementById("msjEstado");
+            const correo = correos[usuarioActual];
+            if (!correo) {
+                mostrarEstado("No hay un correo registrado para este nombre.", "error");
+                return;
+            }
 
-            // Si no hay PIN o pasaron 8 minutos desde la primera vez que se generó, crear uno nuevo
-            if (!pinActual || (ahora - tiempoPrimerEnvio) >= 8 * 60 * 1000) {
-                pinActual = Math.floor(1000 + Math.random() * 9000).toString();
+            const ahora = Date.now();
+
+            // PIN nuevo si: no hay PIN, cambió el usuario, o pasaron 8 min desde el primer envío
+            if (!pinActual || pinUsuario !== usuarioActual || (ahora - tiempoPrimerEnvio) >= REGENERAR_PIN_MS) {
+                pinActual = generarPIN();
+                pinUsuario = usuarioActual;
                 tiempoPrimerEnvio = ahora;
             }
-            
-            // Actualizar la hora del último envío (para expirar a los 5 mins)
-            tiempoUltimoEnvio = ahora; 
 
-            // Enviar el mensaje
-            await enviarWhatsApp(telefono, `Hola ${usuarioActual}, tu PIN para el Secret Santa es: ${pinActual}`);
+            const btnSolicitar = $("btnSolicitar");
+            const btnReenviar = $("btnReenviar");
+            btnSolicitar.disabled = true;
+            btnReenviar.disabled = true;
+            mostrarEstado("Enviando PIN…", "success");
 
-            // Actualizar interfaz
-            msjEstado.innerText = "PIN enviado a tu WhatsApp ✅";
-            msjEstado.classList.remove("hidden");
-            msjEstado.classList.add("success");
-            document.getElementById("zonaValidacion").classList.remove("hidden");
+            try {
+                await enviarCorreo(usuarioActual, correo, pinActual);
+            } catch (error) {
+                console.error("Error de EmailJS:", error);
+                // EmailJS devuelve { status, text }; mostrar el texto ayuda a detectar credenciales mal copiadas
+                const detalle = error && error.text ? ` (${error.text})` : "";
+                mostrarEstado(`No se pudo enviar el correo. Intenta de nuevo en un momento.${detalle}`, "error");
+                btnSolicitar.disabled = false;
+                btnReenviar.disabled = false;
+                return; // sin cooldown si el envío falló
+            }
 
-            // Bloquear botones e iniciar cooldown de 60 segundos
+            tiempoUltimoEnvio = ahora;
+            mostrarEstado(`PIN enviado a ${ocultarCorreo(correo)} ✅ (revisa también Spam)`, "success");
+
+            // Bloquear el selector mientras haya un PIN en curso
+            $("participanteSelect").disabled = true;
+            $("btnCambiar").classList.remove("hidden");
+            $("zonaValidacion").classList.remove("hidden");
             btnSolicitar.classList.add("hidden");
             btnReenviar.classList.remove("hidden");
-            btnReenviar.disabled = true;
-            
-            let cuentaRegresiva = 60;
-            btnReenviar.innerText = `Espera ${cuentaRegresiva}s para reenviar`;
-            
-            const temporizador = setInterval(() => {
-                cuentaRegresiva--;
-                btnReenviar.innerText = `Espera ${cuentaRegresiva}s para reenviar`;
-                
-                if (cuentaRegresiva <= 0) {
+            iniciarCooldown();
+        }
+
+        // PIN de 4 dígitos (1000-9999) con el generador criptográfico del navegador, no con Math.random()
+        function generarPIN() {
+            const numero = crypto.getRandomValues(new Uint32Array(1))[0] % 9000;
+            return String(1000 + numero);
+        }
+
+        function iniciarCooldown() {
+            const btn = $("btnReenviar");
+            let restante = COOLDOWN_SEG;
+            clearInterval(temporizador);
+            btn.disabled = true;
+            btn.innerText = `Espera ${restante}s para reenviar`;
+
+            temporizador = setInterval(() => {
+                restante--;
+                btn.innerText = `Espera ${restante}s para reenviar`;
+                if (restante <= 0) {
                     clearInterval(temporizador);
-                    btnReenviar.disabled = false;
-                    btnReenviar.innerText = "Reenviar código";
+                    btn.disabled = false;
+                    btn.innerText = "Reenviar código";
                 }
             }, 1000);
         }
 
+        // m****l@gmail.com
+        function ocultarCorreo(correo) {
+            const [usuario, dominio] = correo.split("@");
+            return usuario[0] + "****" + usuario.slice(-1) + "@" + dominio;
+        }
+
+        function cambiarUsuario() {
+            pinActual = null;
+            pinUsuario = "";
+            clearInterval(temporizador);
+            $("participanteSelect").disabled = false;
+            $("participanteSelect").value = "";
+            $("btnSolicitar").classList.remove("hidden");
+            $("btnSolicitar").disabled = false;
+            $("btnReenviar").classList.add("hidden");
+            $("btnCambiar").classList.add("hidden");
+            $("zonaValidacion").classList.add("hidden");
+            $("msjEstado").className = "hidden";
+            $("inputPIN").value = "";
+        }
+
         // 6. VALIDACIÓN DEL PIN Y EXPIRACIÓN
         function validarPIN() {
-            const pinIngresado = document.getElementById("inputPIN").value;
-            
+            const pinIngresado = $("inputPIN").value.trim();
+
             if (!pinActual) {
-                alert("Primero debes solicitar el PIN.");
+                mostrarEstado("Primero debes solicitar el PIN.", "error");
                 return;
             }
 
-            // Validar si pasaron más de 5 minutos desde que se envió
-            if (Date.now() - tiempoUltimoEnvio > 5 * 60 * 1000) {
-                alert("El PIN expiró (máximo 5 minutos de validez). Usa el botón de reenvío para recibirlo otra vez.");
+            if (Date.now() - tiempoUltimoEnvio > VIGENCIA_PIN_MS) {
+                mostrarEstado("El PIN expiró (máximo 5 minutos de validez). Usa el botón de reenvío para recibirlo otra vez.", "error");
                 return;
             }
 
             if (pinIngresado === pinActual) {
-                document.getElementById("zonaValidacion").classList.add("hidden");
-                document.getElementById("msjEstado").classList.add("hidden");
-                document.getElementById("btnReenviar").classList.add("hidden");
-                document.getElementById("zonaRegalo").classList.remove("hidden");
-                // Aquí ejecutas las funciones de Firebase para leer/escribir datos
+                clearInterval(temporizador);
+                pinActual = null; // un PIN usado no se puede reutilizar
+                ["zonaValidacion", "msjEstado", "btnReenviar", "btnCambiar"].forEach(id => $(id).classList.add("hidden"));
+                $("nombreConfirmado").innerText = usuarioActual;
+                $("zonaRegalo").classList.remove("hidden");
+                // Aquí irán las funciones de Firebase
             } else {
-                alert("PIN incorrecto. Intenta nuevamente.");
+                mostrarEstado("PIN incorrecto. Intenta nuevamente.", "error");
             }
         }
+
+        // 7. BOTONES (con addEventListener en vez de onclick="", para que sigan funcionando
+        //    cuando el script pase a ser <script type="module"> al integrar Firebase)
+        $("btnSolicitar").addEventListener("click", gestionarPIN);
+        $("btnReenviar").addEventListener("click", gestionarPIN);
+        $("btnCambiar").addEventListener("click", cambiarUsuario);
+        $("btnValidar").addEventListener("click", validarPIN);
+        $("inputPIN").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") validarPIN();
+        });
+
+        // 8. COMPARTIR POR WHATSAPP (enlace wa.me: abre WhatsApp con el mensaje escrito; la persona pulsa Enviar)
+        //    Se usa la dirección actual de la página, sin parámetros, así funciona igual en GitHub Pages.
+        const urlPagina = location.origin + location.pathname;
+        const mensajeWpp = `🎅 ¡Ya está abierto el Secret Santa 2026! Entra, elige tu nombre y registra tu deseo de regalo 🎁\n${urlPagina}`;
+        $("btnWhatsApp").href = "https://wa.me/?text=" + encodeURIComponent(mensajeWpp);
     </script>
 </body>
 </html>
