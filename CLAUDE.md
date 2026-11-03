@@ -14,7 +14,8 @@ confirmación antes de decisiones que no se puedan deshacer.
   Sin API de Meta ni tokens (decidido 2026-11-02: no hay opción automática gratis sin servidor).
 - **Base de datos:** Firebase (Firestore), proyecto `santa-secret-2026-45ed4`, plan Spark. SDK modular por CDN
   fijado en `12.19.0` (`https://www.gstatic.com/firebasejs/12.19.0/firebase-*.js`) con `<script type="module">`.
-  - Datos: `deseos/{nombre}` = `{ deseo, actualizado }` · `config/sorteo` = `{ presupuesto, fecha_entrega, realizado }`.
+  - Datos: `deseos/{nombre}` = `{ deseo, actualizado }` · `correos/{nombre}` = `{ correo, creado }` (solo se crea una vez)
+    · `config/sorteo` = `{ realizado, fecha }`.
   - Las reglas viven en `firestore.rules` (copia en el repo); Miguel las pega a mano en la consola de Firebase.
     Si se cambian, recordarle que las vuelva a publicar.
 - Idioma: toda la interfaz, mensajes y comentarios del código en **español**.
@@ -29,13 +30,15 @@ confirmación antes de decisiones que no se puedan deshacer.
 - Hoy el PIN se genera y valida **en el navegador** (`pinActual`), así que cualquiera puede verlo
   con F12. Es aceptable solo como primera barrera. La protección real de los datos debe venir de
   las **reglas de seguridad de Firestore**, nunca de ocultar cosas en el JavaScript.
-- Los correos de los familiares hoy están en el objeto `correos` del código (visibles en el repo).
-  Idealmente moverlos a Firestore cuando se integre Firebase.
+- Los correos de los familiares ya **no** están en el código: cada uno registra el suyo la primera vez que entra
+  (se guarda en `correos/{nombre}` solo después de validar el PIN). Solo el del organizador está fijo en `CORREOS_FIJOS`.
+  Con la Opción B, cualquiera que conozca el nombre exacto podría leer ese correo.
 
 ## Flujo actual (autenticación por PIN, ya implementado)
 
-1. El usuario elige su nombre en `#participanteSelect`.
-2. "Solicitar PIN" genera un PIN de 4 dígitos y lo envía por EmailJS al correo del objeto `correos`.
+1. El usuario elige su nombre en `#participanteSelect` (opciones generadas desde `PARTICIPANTES`).
+   Si aún no tiene correo guardado, aparece `#zonaRegistro` para escribirlo (solo la primera vez).
+2. "Enviarme el código" genera un PIN de 4 dígitos y lo envía por EmailJS a su correo.
 3. Reglas de tiempo (no cambiarlas sin preguntar):
    - El PIN vale **5 minutos** desde el último envío.
    - Botón "Reenviar código" con **cooldown de 60 s**.
@@ -73,15 +76,16 @@ Siempre manejar el error de `emailjs.send` y mostrarlo en pantalla; nunca mostra
      Desde esa hora ya no se pueden editar deseos. La página muestra una cuenta regresiva.
    - No hay servidor: el sorteo no se ejecuta solo; Miguel lo lanza desde la página a esa hora.
    - Presupuesto **$250.000 COP** y entrega el **24 de diciembre** (`PRESUPUESTO` y `FECHA_ENTREGA` en `index.html`).
-   - **Fase de prueba interna:** Familiar2..8 usan alias de Gmail (`mmantilla258+familiarN@gmail.com`) que llegan
-     a la bandeja del organizador. Antes de invitar a la familia, cambiar nombres y correos reales (en `correos` y en el `<select>`).
+   - **Participantes** (`PARTICIPANTES`): Alejandro, Luddy Laguado, Ismael Moncada, Miguel Angel, Blanca,
+     Estefania, Bart, Angelica. El nombre es el ID en Firestore: cambiarlo deja huérfanos sus datos.
    - El participante 1 (correo `mmantilla258@gmail.com`, el organizador) aparece como **Alejandro** (`ORGANIZADOR`).
 5. ✅ **Sorteo** (implementado; panel del organizador visible solo para `ORGANIZADOR`):
    - Antes de `FECHA_SORTEO` es **modo prueba** (repetible, no escribe en Firebase). Desde esa hora es real y
      escribe `config/sorteo = { realizado: true, fecha }` (las reglas solo lo permiten desde la fecha).
    - Las asignaciones **no se guardan** en Firestore: solo viajan en los correos (8 envíos por sorteo).
-   - `PAREJAS_EXCLUIDAS` (ambos sentidos): Alejandro no puede dar ni recibir de Familiar2, 3, 4 y 5.
-     Al poner los nombres reales, actualizar también esta lista.
+   - `PAREJAS_EXCLUIDAS` (ambos sentidos): Alejandro no puede dar ni recibir de Luddy Laguado, Ismael Moncada,
+     Miguel Angel ni Blanca.
+   - El sorteo no se hace si alguien aún no registró su correo (muestra quiénes faltan).
    Requisitos originales:
    - Permutación aleatoria donde nadie se saca a sí mismo (derangement). Usar Fisher-Yates con
      `crypto.getRandomValues` y reintentar hasta cumplir las restricciones.
